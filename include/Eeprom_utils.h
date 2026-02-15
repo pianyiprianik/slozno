@@ -7,8 +7,8 @@
 // Функции для работы с EEPROM
 void saveTargetTemps(float temp1, float temp2);         //  Сохраняет целевые температуры ёмкостей в EEPROM
 void loadTargetTemps(float &temp1, float &temp2);       //  Загружает целевые температуры из EEPROM
-void saveTargetFrequency();                             //  Сохраняет частоту генератора в EEPROM
-void loadTargetFrequency();                             //  Загружает частоту генератора из EEPROM
+void saveFrequencies();                             //  Сохраняет частоту генератора в EEPROM
+void loadFrequencies();                             //  Загружает частоту генератора из EEPROM
 void loadAllSettings();                                 //  Загружает ВСЕ настройки системы из EEPROM
 
 #endif // EEPROM_UTILS_H

@@ -54,8 +54,5 @@ void loadAllSettings() {
     extern Heater heater2;
     
     loadTargetTemps(heater1.targetTemp, heater2.targetTemp);
-    loadTargetFrequency();
-    
-    // Устанавливаем сохраненную частоту
-    setFrequency(targetFrequency);
+    loadFrequencies();  // Загружаем оба генератора
 }

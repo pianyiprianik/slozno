@@ -22,7 +22,13 @@
 #define HEATER_PIN_2 3
 
 // Генератор частоты
-#define FREQ_PIN 12
+#define FREQ1_PIN 12
+#define FREQ1_MAX 1000
+#define FREQ1_TIMER Timer1
+
+#define FREQ2_PIN 45  
+#define FREQ2_MAX 5000  
+#define FREQ2_TIMER Timer5
 
 // ==================== ПАРАМЕТРЫ ТЕМПЕРАТУРЫ ====================
 const float MIN_TARGET_TEMP = 20.00;

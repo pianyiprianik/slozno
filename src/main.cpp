@@ -28,17 +28,20 @@ void setup() {
     initBluetooth();
     initHeaters();
     initTemperatureSensors();
-    initFrequencyGenerator();
+    initFrequencyGenerators();
     
     // Загружаем сохраненные настройки
     loadAllSettings();
+
+    // Устанавливаем сохранённые частоты
+    setGenerator1(gen1.frequency);
+    setGenerator2(gen2.frequency);
     
     Serial.print(F("Loaded target temperature 1: "));
     Serial.println(heater1.targetTemp, 1);
     Serial.print(F("Loaded target temperature 2: "));
     Serial.println(heater2.targetTemp, 1);
     Serial.print(F("Loaded target frequency: "));
-    Serial.println(targetFrequency);
     
     // Включаем Watchdog на 4 секунды
     wdt_enable(WDTO_4S);
@@ -49,6 +52,8 @@ void setup() {
     sensorReactor2.requestTemperatures();
     
     Serial.println(F("System ready!"));
+
+    wdt_enable(WDTO_4S);
 }
 
 void loop() {
@@ -110,10 +115,13 @@ void loop() {
         Serial.print(F(" P:"));
         Serial.print(heater2.permission ? F("ON ") : F("OFF"));
         
-        Serial.print(F(" | FREQ:"));
-        Serial.print(targetFrequency);
+        Serial.print(F(" | FREQ1:"));
+        Serial.print(gen1.frequency);
+        Serial.print(gen1.active ? F("*") : F(" "));
+        Serial.print(F("Hz FREQ2:"));
+        Serial.print(gen2.frequency);
+        Serial.print(gen2.active ? F("*") : F(" "));
         Serial.print(F("Hz"));
-        if (frequencyActive) Serial.print(F("*"));
         
         Serial.print(F(" | BT:"));
         Serial.print(millis() - lastBluetoothCheck < 10000 ? F("OK ") : F("WARN"));

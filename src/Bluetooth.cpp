@@ -153,9 +153,26 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                 break;
                 
             // Частота
-            case 20:
-                intValue = constrain(intValue, 0, 1000);
-                updateFrequency(intValue);  // Используем новую функцию
+            case 20: // V20 - Частота первого генератора
+                intValue = constrain(intValue, 0, FREQ1_MAX);
+                if (gen1.frequency != intValue) {
+                    if (millis() - gen1.lastChangeTime >= FREQUENCY_CHANGE_DELAY) {
+                        setGenerator1(intValue);
+                        gen1.lastChangeTime = millis();
+                        saveFrequencies();
+                    }
+                }
+                break;
+
+            case 21: // V21 - Частота второго генератора
+                intValue = constrain(intValue, 0, FREQ2_MAX);
+                if (gen2.frequency != intValue) {
+                    if (millis() - gen2.lastChangeTime >= FREQUENCY_CHANGE_DELAY) {
+                        setGenerator2(intValue);
+                        gen2.lastChangeTime = millis();
+                        saveFrequencies();
+                    }
+                }
                 break;
         }
     }
@@ -175,7 +192,9 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 16: return String(heater2.alarm ? 1 : 0);
             case 17: return String(heater2.permission ? 1 : 0);
             case 18: return String(heater2.state ? 1 : 0);
-            case 20: return String(targetFrequency);
+            //case 20: return String(targetFrequency);
+            case 21: return String(gen2.frequency);  // V21 - частота gen2
+            case 22: return String(gen2.active ? 1 : 0);  // V22 - состояние gen2
         }
     }
     return "";
