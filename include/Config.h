@@ -31,7 +31,8 @@
 #define FREQ2_TIMER Timer5
 
 // ТРИГГЕР (новый выход)
-#define AUX_PIN 46  // Пин для переменной 0/1
+#define AUX1_PIN 46  // Пин для переменной 0/1
+#define AUX2_PIN 47  // Пин для переменной V31 (0/1)
 
 // Параметры плавного пуска
 const int FREQ_STEP_SIZE = 8;        // Шаг увеличения частоты (Гц)

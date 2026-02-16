@@ -178,22 +178,34 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                 }
                 break;
             
-            // ===== ДОПОЛНИТЕЛЬНЫЙ ПИН 48 =====
-            case 30: // V30 - Управление пином 48 (0 или 1)
+            // ===== ДОПОЛНИТЕЛЬНЫЙ ПИН 46 =====
+            case 30: // V30 - Управление пином 46 (0 или 1)
+                                // Проверка: должно быть 0 или 1
                 if (intValue == 0 || intValue == 1) {
-                    auxControl.setTarget(intValue == 1);
+                    bool newState = (intValue == 1);
                     
-                    // Если состояние изменилось, сбрасываем второй генератор
-                    static bool lastAuxState = false;
-                    if (auxControl.targetState != lastAuxState) {
-                        lastAuxState = auxControl.targetState;
+                    // Сохраняем предыдущее состояние для проверки
+                    static bool lastAux1State = false;
+                    
+                    // Устанавливаем целевое состояние
+                    aux1.setTarget(newState);
+                    
+                    // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
+                    if (lastAux1State != newState) {
+                        lastAux1State = newState;
                         
-                        // Сбрасываем второй генератор до 1 Гц
+                        Serial.print(F("AUX1 changed to "));
+                        Serial.println(newState ? F("ON") : F("OFF"));
+                        
+                        // Сбрасываем второй генератор
                         if (gen2.targetFrequency > 0) {
                             gen2.reset();
-                            Serial.println(F("Generator 2 reset due to aux change"));
+                            Serial.println(F("Generator 2 reset due to AUX1 change"));
                         }
                     }
+                } else {
+                    Serial.print(F("Error: V30 value must be 0 or 1, received: "));
+                    Serial.println(intValue);
                 }
                 break;
 
@@ -209,6 +221,36 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         saveTimerInterval();
                     }
                     break;
+
+                case 32: // V30 - Управление пином 46 (0 или 1)
+                                // Проверка: должно быть 0 или 1
+                if (intValue == 0 || intValue == 1) {
+                    bool newState = (intValue == 1);
+                    
+                    // Сохраняем предыдущее состояние для проверки
+                    static bool lastAux2State = false;
+                    
+                    // Устанавливаем целевое состояние
+                    aux2.setTarget(newState);
+                    
+                    // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
+                    if (lastAux2State != newState) {
+                        lastAux2State = newState;
+                        
+                        Serial.print(F("AUX2 changed to "));
+                        Serial.println(newState ? F("ON") : F("OFF"));
+                        
+                        // Сбрасываем второй генератор
+                        if (gen2.targetFrequency > 0) {
+                            gen2.reset();
+                            Serial.println(F("Generator 2 reset due to AUX2 change"));
+                        }
+                    }
+                } else {
+                    Serial.print(F("Error: V31 value must be 0 or 1, received: "));
+                    Serial.println(intValue);
+                }
+                break;
         }
     }
 }
@@ -230,9 +272,10 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 20: return String(gen1.targetFrequency);
             case 21: return String(gen2.targetFrequency);
             case 22: return String(gen2.currentFrequency);  // Текущая частота
-            case 30: return String(auxControl.currentState ? 1 : 0);
+            case 30: return String(aux1.getState() ? 1 : 0);
             case 31: return String(v30TimerInterval);  // Текущий интервал
-            case 32: return String(millis() / 1000);   // Прошедшее время (для отладки)
+            case 32: return String(aux2.getState() ? 1 : 0);
+            case 33: return String(millis() / 1000);   // Прошедшее время (для отладки)
         }
     }
     return "";

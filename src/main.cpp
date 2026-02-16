@@ -35,7 +35,8 @@ void setup() {
     initHeaters();
     initTemperatureSensors();
     initFrequencyGenerators();
-    auxControl.init();
+    aux1.init();
+    aux2.init();
     
     // Загружаем сохраненные настройки
     loadAllSettings();
@@ -83,10 +84,12 @@ void loop() {
             lastV30ToggleTime = millis();
             
             // Инвертируем текущее состояние
-            bool newState = !auxControl.targetState;
+            bool newState = !aux1.getState();
+            //bool newState = !aux2.getState();
             
             // Устанавливаем новое состояние
-            auxControl.setTarget(newState);
+            aux1.setTarget(newState);
+            //aux2.setTarget(newState);
             
             // Сбрасываем второй генератор
             if (gen2.targetFrequency > 0) {
@@ -129,7 +132,8 @@ void loop() {
     updateAllGenerators();
     
     // Обновление дополнительного пина
-    auxControl.update();
+    aux1.update();
+    aux2.update();
     
     // Вывод статуса (каждые 5 секунд)
     static unsigned long lastPrintTime = 0;
@@ -167,8 +171,10 @@ void loop() {
         Serial.print(gen2.active ? F("*") : F(" "));
         Serial.print(F("Hz"));
 
-        Serial.print(F(" | AUX:"));
-        Serial.print(auxControl.currentState ? F("ON ") : F("OFF"));
+        Serial.print(F(" | AUX1:"));
+        Serial.print(aux1.getState() ? F("ON ") : F("OFF"));
+        Serial.print(F(" | AUX2:"));
+        Serial.print(aux2.getState() ? F("ON ") : F("OFF"));
         
         Serial.print(F(" | BT:"));
         Serial.print(millis() - lastBluetoothCheck < 10000 ? F("OK ") : F("WARN"));
