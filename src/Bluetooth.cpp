@@ -1,6 +1,7 @@
 #include "Bluetooth.h"
 #include "HeaterController.h"
 #include "FrequencyGenerator.h"
+#include "Aux_control.h"
 #include "Eeprom_utils.h"
 #include <Arduino.h>
 
@@ -155,7 +156,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
             // Частота
             case 20: // V20 - Частота первого генератора
                 intValue = constrain(intValue, 0, FREQ1_MAX);
-                if (gen1.frequency != intValue) {
+                if (gen1.targetFrequency != intValue) {
                     if (millis() - gen1.lastChangeTime >= FREQUENCY_CHANGE_DELAY) {
                         setGenerator1(intValue);
                         gen1.lastChangeTime = millis();
@@ -166,11 +167,30 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
 
             case 21: // V21 - Частота второго генератора
                 intValue = constrain(intValue, 0, FREQ2_MAX);
-                if (gen2.frequency != intValue) {
+                if (gen2.targetFrequency != intValue) {
                     if (millis() - gen2.lastChangeTime >= FREQUENCY_CHANGE_DELAY) {
                         setGenerator2(intValue);
                         gen2.lastChangeTime = millis();
                         saveFrequencies();
+                    }
+                }
+                break;
+            
+            // ===== ДОПОЛНИТЕЛЬНЫЙ ПИН 48 =====
+            case 30: // V30 - Управление пином 48 (0 или 1)
+                if (intValue == 0 || intValue == 1) {
+                    auxControl.setTarget(intValue == 1);
+                    
+                    // Если состояние изменилось, сбрасываем второй генератор
+                    static bool lastAuxState = false;
+                    if (auxControl.targetState != lastAuxState) {
+                        lastAuxState = auxControl.targetState;
+                        
+                        // Сбрасываем второй генератор до 1 Гц
+                        if (gen2.targetFrequency > 0) {
+                            gen2.reset();
+                            Serial.println(F("Generator 2 reset due to aux change"));
+                        }
                     }
                 }
                 break;
@@ -192,9 +212,10 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 16: return String(heater2.alarm ? 1 : 0);
             case 17: return String(heater2.permission ? 1 : 0);
             case 18: return String(heater2.state ? 1 : 0);
-            //case 20: return String(targetFrequency);
-            case 21: return String(gen2.frequency);  // V21 - частота gen2
-            case 22: return String(gen2.active ? 1 : 0);  // V22 - состояние gen2
+            case 20: return String(gen1.targetFrequency);
+            case 21: return String(gen2.targetFrequency);
+            case 22: return String(gen2.currentFrequency);  // Текущая частота
+            case 30: return String(auxControl.currentState ? 1 : 0);
         }
     }
     return "";

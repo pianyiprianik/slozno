@@ -6,23 +6,33 @@
 #include <TimerThree.h> 
 #include <TimerFive.h>
 #include "Config.h"
+#include "Aux_control.h"
 
 // Структура для генератора частоты
 struct FrequencyGenerator {
     const int pin;
     const int timerId;  // 1 или 5
     const int maxFreq;
-    int frequency;
+
+    int targetFrequency;      // Целевая частота (из Virtuino)
+    int currentFrequency;      // Текущая частота (плавно растёт)
     bool active;
+    bool needReset;           // Флаг сброса при изменении aux
+    unsigned long lastStepTime;
     unsigned long lastChangeTime;
     
     // Конструктор с максимальной частотой
     FrequencyGenerator(int p, int timer, int maxF) : 
         pin(p), timerId(timer), maxFreq(maxF),
-        frequency(0), active(false), lastChangeTime(0) {}
+        targetFrequency(0), currentFrequency(0), 
+        active(false), needReset(false),
+        lastStepTime(0), lastChangeTime(0) {}
     
     void init();
-    void setFreq(int freq);
+    void setTarget(int freq);           // Установка целевой частоты
+    void update();                       // Плавное изменение (вызывать в loop)
+    void reset();                         // Сброс до 1 Гц
+    void applyFrequency(int freq);        // Физическая установка частоты
     bool isValidFreq(int freq);
 };
 
@@ -34,6 +44,7 @@ extern FrequencyGenerator gen2;  // Timer5 на пине 45
 void initFrequencyGenerators();
 void setGenerator1(int freq);
 void setGenerator2(int freq);
+void updateAllGenerators();
 void saveFrequencies();
 void loadFrequencies();
 

@@ -7,6 +7,7 @@
 #include "FrequencyGenerator.h"
 #include "Bluetooth.h"
 #include "Eeprom_utils.h"
+#include "Aux_control.h"
 
 
 // Глобальные переменные для таймеров
@@ -29,13 +30,14 @@ void setup() {
     initHeaters();
     initTemperatureSensors();
     initFrequencyGenerators();
+    auxControl.init();
     
     // Загружаем сохраненные настройки
     loadAllSettings();
 
     // Устанавливаем сохранённые частоты
-    setGenerator1(gen1.frequency);
-    setGenerator2(gen2.frequency);
+    setGenerator1(gen1.targetFrequency);
+    setGenerator2(gen2.targetFrequency);
     
     Serial.print(F("Loaded target temperature 1: "));
     Serial.println(heater1.targetTemp, 1);
@@ -86,6 +88,12 @@ void loop() {
         verifyHeaterState(heater2, 2);
         heater2.lastStateCheckTime = millis();
     }
+
+    // Обновление всех генераторов (плавный пуск)
+    updateAllGenerators();
+    
+    // Обновление дополнительного пина
+    auxControl.update();
     
     // Вывод статуса (каждые 5 секунд)
     static unsigned long lastPrintTime = 0;
@@ -116,12 +124,15 @@ void loop() {
         Serial.print(heater2.permission ? F("ON ") : F("OFF"));
         
         Serial.print(F(" | FREQ1:"));
-        Serial.print(gen1.frequency);
+        Serial.print(gen1.currentFrequency);
         Serial.print(gen1.active ? F("*") : F(" "));
         Serial.print(F("Hz FREQ2:"));
-        Serial.print(gen2.frequency);
+        Serial.print(gen2.currentFrequency);
         Serial.print(gen2.active ? F("*") : F(" "));
         Serial.print(F("Hz"));
+
+        Serial.print(F(" | AUX:"));
+        Serial.print(auxControl.currentState ? F("ON ") : F("OFF"));
         
         Serial.print(F(" | BT:"));
         Serial.print(millis() - lastBluetoothCheck < 10000 ? F("OK ") : F("WARN"));
