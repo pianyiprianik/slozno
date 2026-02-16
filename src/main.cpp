@@ -14,6 +14,11 @@
 unsigned long lastTempUpdate = 0;
 unsigned long lastControlUpdate = 0;
 unsigned long lastBluetoothCheck = 0;
+unsigned long lastV30ToggleTime = 0;
+bool lastV30State = false;
+
+// Для отсчёта времени (из bluetooth)
+extern unsigned int v30TimerInterval;
 
 void setup() {
     // Отключаем Watchdog при старте
@@ -64,6 +69,37 @@ void loop() {
     // Обработка Bluetooth
     processBluetooth();
     checkBluetoothConnection();
+
+    // ===== ТАЙМЕР ДЛЯ V30 =====
+    // Проверяем каждую секунду (чтобы не нагружать процессор)
+    static unsigned long lastTimerCheck = 0;
+    if (millis() - lastTimerCheck >= 1000) {
+        lastTimerCheck = millis();
+        
+        // Переводим интервал из секунд в миллисекунды
+        unsigned long intervalMs = v30TimerInterval * 1000UL;
+        
+        if (millis() - lastV30ToggleTime >= intervalMs) {
+            lastV30ToggleTime = millis();
+            
+            // Инвертируем текущее состояние
+            bool newState = !auxControl.targetState;
+            
+            // Устанавливаем новое состояние
+            auxControl.setTarget(newState);
+            
+            // Сбрасываем второй генератор
+            if (gen2.targetFrequency > 0) {
+                gen2.reset();
+                Serial.println(F("Generator 2 reset due to V30 timer"));
+            }
+            
+            Serial.print(F("V30 timer (interval: "));
+            Serial.print(v30TimerInterval);
+            Serial.print(F("s): set to "));
+            Serial.println(newState ? F("ON") : F("OFF"));
+        }
+    }
     
     // Обновление температуры
     if (millis() - lastTempUpdate >= TEMP_UPDATE_INTERVAL) {

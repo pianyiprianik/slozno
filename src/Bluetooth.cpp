@@ -5,6 +5,8 @@
 #include "Eeprom_utils.h"
 #include <Arduino.h>
 
+unsigned int v30TimerInterval = DEFAULT_TIMER_INTERVAL;
+
 // Создаем объекты
 SoftwareSerial bluetooth(BT_RX_PIN, BT_TX_PIN);
 VirtuinoCM virtuino;
@@ -194,6 +196,19 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                     }
                 }
                 break;
+
+                case 31: // V31 - Интервал таймера V30 (в секундах)
+                    intValue = constrain(intValue, MIN_TIMER_INTERVAL, MAX_TIMER_INTERVAL);
+                    if (v30TimerInterval != (unsigned int)intValue) {
+                        v30TimerInterval = intValue;
+                        Serial.print(F("V30 timer interval set to: "));
+                        Serial.print(v30TimerInterval);
+                        Serial.println(F(" seconds"));
+            
+                        // Сохраняем в EEPROM (если нужно)
+                        saveTimerInterval();
+                    }
+                    break;
         }
     }
 }
@@ -216,6 +231,8 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 21: return String(gen2.targetFrequency);
             case 22: return String(gen2.currentFrequency);  // Текущая частота
             case 30: return String(auxControl.currentState ? 1 : 0);
+            case 31: return String(v30TimerInterval);  // Текущий интервал
+            case 32: return String(millis() / 1000);   // Прошедшее время (для отладки)
         }
     }
     return "";

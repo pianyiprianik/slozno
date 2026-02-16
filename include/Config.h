@@ -34,9 +34,14 @@
 #define AUX_PIN 46  // Пин для переменной 0/1
 
 // Параметры плавного пуска
-const int FREQ_STEP_SIZE = 10;        // Шаг увеличения частоты (Гц)
-const unsigned long FREQ_STEP_INTERVAL = 50;  // Интервал между шагами (мс)
+const int FREQ_STEP_SIZE = 8;        // Шаг увеличения частоты (Гц)
+const unsigned long FREQ_STEP_INTERVAL = 60;  // Интервал между шагами (мс)
 const int FREQ_RESET_VALUE = 1;        // Значение при сбросе (1 Гц)
+
+// ==================== ТАЙМЕР ДЛЯ V30 ====================
+const unsigned long MIN_TIMER_INTERVAL = 1;      // Минимум 1 секунда
+const unsigned long MAX_TIMER_INTERVAL = 3600;   // Максимум 1 час (3600 секунд)
+const unsigned long DEFAULT_TIMER_INTERVAL = 60; // По умолчанию 60 секунд
 
 // ==================== ПАРАМЕТРЫ ТЕМПЕРАТУРЫ ====================
 const float MIN_TARGET_TEMP = 20.00;

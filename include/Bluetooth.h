@@ -6,8 +6,9 @@
 #include "Config.h"
 
 // Глобальные объекты
-extern SoftwareSerial bluetooth;    //  Объявляем, что объект bluetooth существует, но создан в другом файле (.cpp)
-extern VirtuinoCM virtuino;         //  Объявляем, что объект virtuino существует, но создан в другом файле (.cpp)
+extern SoftwareSerial bluetooth;        //  Объявляем, что объект bluetooth существует, но создан в другом файле (.cpp)
+extern VirtuinoCM virtuino;             //  Объявляем, что объект virtuino существует, но создан в другом файле (.cpp)
+extern unsigned int v30TimerInterval;   // Интервал в секундах
 
 // Функции для работы с Bluetooth
 void initBluetooth();                       //  Инициализация Bluetooth модуля при старте

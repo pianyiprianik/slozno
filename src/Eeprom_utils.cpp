@@ -48,6 +48,26 @@ void loadTargetTemps(float &temp1, float &temp2) {
     }
 }
 
+void saveTimerInterval() {
+    extern unsigned int v30TimerInterval;
+    EEPROM.put(EEPROM_TIMER_INTERVAL, v30TimerInterval);
+    int checksum = v30TimerInterval + EEPROM_MAGIC_NUMBER;
+    EEPROM.put(EEPROM_TIMER_CHECKSUM, checksum);
+}
+
+void loadTimerInterval() {
+    extern unsigned int v30TimerInterval;
+    unsigned int loadedInterval;
+    int savedChecksum;
+    
+    EEPROM.get(EEPROM_TIMER_INTERVAL, loadedInterval);
+    EEPROM.get(EEPROM_TIMER_CHECKSUM, savedChecksum);
+    
+    if (loadedInterval + EEPROM_MAGIC_NUMBER == savedChecksum) {
+        v30TimerInterval = constrain(loadedInterval, MIN_TIMER_INTERVAL, MAX_TIMER_INTERVAL);
+    }
+}
+
 // Загрузка всех настроек
 void loadAllSettings() {
     extern Heater heater1;
@@ -55,4 +75,6 @@ void loadAllSettings() {
     
     loadTargetTemps(heater1.targetTemp, heater2.targetTemp);
     loadFrequencies();  // Загружаем оба генератора
+    loadTimerInterval();
 }
+
