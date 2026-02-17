@@ -23,6 +23,7 @@
 
 // Генератор частоты
 #define FREQ1_PIN 12
+
 #define FREQ1_MAX 10000
 #define FREQ1_TIMER Timer1
 
@@ -51,8 +52,8 @@ const unsigned int MAX_TIMER_SECONDS = 7200; // 1 час
 #define UV_MAX_ERRORS 5
 
 // Параметры плавного пуска
-const int FREQ_STEP_SIZE = 7;        // Шаг увеличения частоты (Гц)
-const unsigned long FREQ_STEP_INTERVAL = 58;  // Интервал между шагами (мс)
+const int FREQ_STEP_SIZE = 15;        // Шаг увеличения частоты (Гц)
+const unsigned long FREQ_STEP_INTERVAL = 40;  // Интервал между шагами (мс)
 const int FREQ_RESET_VALUE = 1;        // Значение при сбросе (1 Гц)
 
 // ==================== ЗАЩИТА ПЕРЕМЕННЫХ ====================
@@ -80,8 +81,8 @@ const float MIN_TARGET_TEMP = 20.00;
 const float MAX_TARGET_TEMP = 40.00;
 const float HYSTERESIS = 1.0;
 const float TEMP_TOLERANCE = 0.5;
-const float TEMP_HYSTERESIS_LOW = 0.3;      //  Нижний порог гистерезиса
-const float TEMP_HYSTERESIS_HIGH = 0.7;     //  Верхний порог гистерезиса
+const float TEMP_HYSTERESIS_LOW = 0.2;      //  Нижний порог гистерезиса
+const float TEMP_HYSTERESIS_HIGH = 0.2;     //  Верхний порог гистерезиса
 
 // ==================== ТАЙМЕРЫ (в миллисекундах) ====================
 const unsigned long TEMP_UPDATE_INTERVAL = 2000;        //  Обновление температуры
