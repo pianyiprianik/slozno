@@ -5,6 +5,7 @@
 #include "Eeprom_utils.h"
 #include <Arduino.h>
 #include "veml6075.h"
+#include "Timer_pin.h"
 
 unsigned int v30TimerInterval = DEFAULT_TIMER_INTERVAL;
 
@@ -57,15 +58,13 @@ void processBluetooth() {
 extern unsigned long lastBluetoothCheck;
 
 void checkBluetoothConnection() {
+    static unsigned long lastWarningTime = 0;
+    
     if (millis() - lastBluetoothCheck > BLUETOOTH_TIMEOUT) {
-        static bool warningShown = false;
-        if (!warningShown) {
-            Serial.println(F("WARNING: No Bluetooth data received for 30 seconds"));
-            warningShown = true;
+        if (millis() - lastWarningTime > 30000) {  // Предупреждение раз в 30 сек
+            lastWarningTime = millis();
+            Serial.println(F("WARNING: No Bluetooth data received"));
         }
-    } else {
-        static bool warningShown = false;
-        warningShown = false;
     }
 }
 
@@ -84,7 +83,7 @@ bool isValidData(String str) {
     bool hasDecimal = false;
     bool hasDigit = false;
     
-    for (int i = 0; i < str.length(); i++) {
+    for (unsigned int i = 0; i < str.length(); i++) {  // unsigned int
         if (str[i] == '-' && i == 0) continue;
         if (str[i] == '.' && !hasDecimal) {
             hasDecimal = true;
@@ -118,6 +117,13 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
         
         float floatValue = valueAsText.toFloat();
         int intValue = valueAsText.toInt();
+
+        // Дополнительная защита: проверяем разумность значения
+        if (abs(floatValue) > 10000) {  // Защита от космических чисел
+            Serial.print(F("Value too large: "));
+            Serial.println(floatValue);
+            return;
+        }
         
         switch (variableIndex) {
             // Емкость 1
@@ -254,9 +260,34 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                     break;
 
                 case 44: // V44 - Уставка UVB
-                    floatValue = constrain(floatValue, 0.0, 100.0);
-                    if (abs(uvData.uvbThreshold - floatValue) > 0.01) {
-                        setUVBThreshold(floatValue);
+                    if (!uvData.setThreshold(floatValue)) {
+                        Serial.print(F("V44 out of range: "));
+                        Serial.println(floatValue);
+                    } 
+                    break;
+
+                case 50:
+                    if (!timerPin.setLowSeconds(intValue)) {
+                        Serial.print(F("V50 out of range: "));
+                        Serial.println(intValue);
+                    }
+                    break;
+                
+                // ===== ТАЙМЕР V51 =====
+                case 51:
+                    if (!timerPin.setHighSeconds(intValue)) {
+                        Serial.print(F("V51 out of range: "));
+                        Serial.println(intValue);
+                    }
+                    break;
+                
+                // ===== ТАЙМЕР V52 =====
+                case 52:
+                    if (intValue == 0 || intValue == 1) {
+                        timerPin.setEnabled(intValue == 1);
+                    } else {
+                        Serial.print(F("V52 must be 0 or 1, got: "));
+                        Serial.println(intValue);
                     }
                     break;
         }
@@ -292,6 +323,12 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 43: return String(uvData.sensorOK ? 1 : 0);
             case 44: return String(uvData.uvbThreshold, 2);  
             case 45: return String(uvData.comparatorState ? 1 : 0);
+
+            // ===== ТАЙМЕРНЫЙ ПИН =====
+            case 50: return String(timerPin.lowSeconds);     // Текущее LOW время
+            case 51: return String(timerPin.highSeconds);    // Текущее HIGH время
+            case 52: return String(timerPin.enabled ? 1 : 0); // Состояние таймера
+            case 53: return String(timerPin.getState() ? 1 : 0); // Текущее состояние пина
         }
     }
     return "";

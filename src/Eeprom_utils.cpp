@@ -2,6 +2,43 @@
 #include <EEPROM.h>
 #include "HeaterController.h"
 #include "FrequencyGenerator.h"
+#include "Timer_pin.h"
+#include "veml6075.h"
+
+// Новые адреса с защитой
+#define EEPROM_V44_VALUE 80
+#define EEPROM_V44_MAGIC 84
+#define EEPROM_V50_VALUE 86
+#define EEPROM_V50_MAGIC 90
+#define EEPROM_V51_VALUE 92
+#define EEPROM_V51_MAGIC 96
+#define EEPROM_V52_VALUE 98
+#define EEPROM_V52_MAGIC 102
+
+// Внешние переменные
+extern UVData uvData;
+extern TimerPin timerPin;
+
+void saveAllSettings() {
+    // Сохраняем V44 с магическим числом
+    EEPROM.put(EEPROM_V44_VALUE, uvData.uvbThreshold);
+    EEPROM.put(EEPROM_V44_MAGIC, EEPROM_MAGIC_V44);
+    
+    // Сохраняем V50
+    EEPROM.put(EEPROM_V50_VALUE, timerPin.lowSeconds);
+    EEPROM.put(EEPROM_V50_MAGIC, EEPROM_MAGIC_V50);
+    
+    // Сохраняем V51
+    EEPROM.put(EEPROM_V51_VALUE, timerPin.highSeconds);
+    EEPROM.put(EEPROM_V51_MAGIC, EEPROM_MAGIC_V51);
+    
+    // Сохраняем V52 (включен/выключен)
+    uint8_t enabledByte = timerPin.enabled ? 1 : 0;
+    EEPROM.put(EEPROM_V52_VALUE, enabledByte);
+    EEPROM.put(EEPROM_V52_MAGIC, EEPROM_MAGIC_V52);
+    
+    Serial.println(F("All settings saved to EEPROM"));
+}
 
 // Сохранение целевых температур
 void saveTargetTemps(float temp1, float temp2) {
@@ -72,9 +109,58 @@ void loadTimerInterval() {
 void loadAllSettings() {
     extern Heater heater1;
     extern Heater heater2;
+
+    uint16_t magic;
+    float tempFloat;
+    unsigned int tempInt;
+    uint8_t tempByte;
     
     loadTargetTemps(heater1.targetTemp, heater2.targetTemp);
     loadFrequencies();  // Загружаем оба генератора
     loadTimerInterval();
+
+        // Загружаем V44
+    EEPROM.get(EEPROM_V44_MAGIC, magic);
+    if (magic == EEPROM_MAGIC_V44) {
+        EEPROM.get(EEPROM_V44_VALUE, tempFloat);
+        if (tempFloat >= MIN_UVB_THRESHOLD && tempFloat <= MAX_UVB_THRESHOLD) {
+            uvData.uvbThreshold = tempFloat;
+            Serial.print(F("Loaded V44: "));
+            Serial.println(tempFloat);
+        }
+    }
+    
+    // Загружаем V50
+    EEPROM.get(EEPROM_V50_MAGIC, magic);
+    if (magic == EEPROM_MAGIC_V50) {
+        EEPROM.get(EEPROM_V50_VALUE, tempInt);
+        if (tempInt >= MIN_TIMER_SECONDS && tempInt <= MAX_TIMER_SECONDS) {
+            timerPin.lowSeconds = tempInt;
+            Serial.print(F("Loaded V50: "));
+            Serial.println(tempInt);
+        }
+    }
+    
+    // Загружаем V51
+    EEPROM.get(EEPROM_V51_MAGIC, magic);
+    if (magic == EEPROM_MAGIC_V51) {
+        EEPROM.get(EEPROM_V51_VALUE, tempInt);
+        if (tempInt >= MIN_TIMER_SECONDS && tempInt <= MAX_TIMER_SECONDS) {
+            timerPin.highSeconds = tempInt;
+            Serial.print(F("Loaded V51: "));
+            Serial.println(tempInt);
+        }
+    }
+    
+    // Загружаем V52
+    EEPROM.get(EEPROM_V52_MAGIC, magic);
+    if (magic == EEPROM_MAGIC_V52) {
+        EEPROM.get(EEPROM_V52_VALUE, tempByte);
+        if (tempByte == 0 || tempByte == 1) {
+            timerPin.setEnabled(tempByte == 1);
+            Serial.print(F("Loaded V52: "));
+            Serial.println(tempByte);
+        }
+    }
 }
 

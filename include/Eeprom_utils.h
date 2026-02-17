@@ -15,5 +15,6 @@ void loadFrequencies();                             //  Загружает ча�
 void saveTimerInterval();
 void loadTimerInterval();
 void loadAllSettings();                                 //  Загружает ВСЕ настройки системы из EEPROM
-
+void saveAllSettings();
+void loadAllSettings();
 #endif // EEPROM_UTILS_H

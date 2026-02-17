@@ -35,8 +35,11 @@
 #define AUX2_PIN 47  // Пин для переменной V31 (0/1)
 #define UV_COMPARATOR_PIN 43 
 
-// ==================== UV ДАТЧИК ====================
-#define VEML6075_ADDR 0x10
+#define TIMER_PIN 44
+
+// Минимальные и максимальные значения для таймера (в секундах)
+const unsigned int MIN_TIMER_SECONDS = 1;
+const unsigned int MAX_TIMER_SECONDS = 7200; // 1 час
 
 // Настройки времени интеграции (в миллисекундах)
 #define UV_INTEGRATION_TIME 100  // 50, 100, 200, 400 мс
@@ -48,9 +51,24 @@
 #define UV_MAX_ERRORS 5
 
 // Параметры плавного пуска
-const int FREQ_STEP_SIZE = 8;        // Шаг увеличения частоты (Гц)
-const unsigned long FREQ_STEP_INTERVAL = 60;  // Интервал между шагами (мс)
+const int FREQ_STEP_SIZE = 7;        // Шаг увеличения частоты (Гц)
+const unsigned long FREQ_STEP_INTERVAL = 58;  // Интервал между шагами (мс)
 const int FREQ_RESET_VALUE = 1;        // Значение при сбросе (1 Гц)
+
+// ==================== ЗАЩИТА ПЕРЕМЕННЫХ ====================
+// Минимальные и максимальные значения для всех переменных
+const float MIN_UVB_THRESHOLD = 0.0;
+const float MAX_UVB_THRESHOLD = 100.0;
+const float DEFAULT_UVB_THRESHOLD = 5.0;
+
+const unsigned int DEFAULT_LOW_SECONDS = 5;
+const unsigned int DEFAULT_HIGH_SECONDS = 5;
+
+// Магические числа для защиты EEPROM (усилим)
+const uint16_t EEPROM_MAGIC_V44 = 0xA1B2;
+const uint16_t EEPROM_MAGIC_V50 = 0xA3B4;
+const uint16_t EEPROM_MAGIC_V51 = 0xA5B6;
+const uint16_t EEPROM_MAGIC_V52 = 0xA7B8;
 
 // ==================== ТАЙМЕР ДЛЯ V30 ====================
 const unsigned long MIN_TIMER_INTERVAL = 1;      // Минимум 1 секунда
@@ -92,4 +110,4 @@ const int PWM_DUTY_CYCLE = 512;     //  50% заполнения (1024/2)
 
 #define EEPROM_MAGIC_NUMBER 0x5A    //0x5A = 90 в десятичной
 
-#endif // CONFIG_H
+#endif // CONFIG_

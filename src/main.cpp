@@ -9,6 +9,7 @@
 #include "Eeprom_utils.h"
 #include "Aux_control.h"
 #include "veml6075.h"
+#include "Timer_pin.h"
 
 
 // Глобальные переменные для таймеров
@@ -22,6 +23,7 @@ const unsigned long UV_UPDATE_INTERVAL = 2000;
 
 // Для отсчёта времени (из bluetooth)
 extern unsigned int v30TimerInterval;
+extern void saveAllSettings();
 
 void setup() {
     // Отключаем Watchdog при старте
@@ -41,6 +43,7 @@ void setup() {
     aux1.init();
     aux2.init();
     initVEML6075();
+    timerPin.init();
     
     // Загружаем сохраненные настройки
     loadAllSettings();
@@ -78,6 +81,9 @@ void loop() {
     // ===== ТАЙМЕР ДЛЯ V30 =====
     // Проверяем каждую секунду (чтобы не нагружать процессор)
     static unsigned long lastTimerCheck = 0;
+    //static unsigned long lastSaveTime = 0;
+    const unsigned long SAVE_INTERVAL = 60000; // Сохранять каждую минуту
+
     if (millis() - lastTimerCheck >= 1000) {
         lastTimerCheck = millis();
         
@@ -138,11 +144,19 @@ void loop() {
     // Обновление дополнительного пина
     aux1.update();
     aux2.update();
+    timerPin.update();
 
     // Обновление UV датчика (добавить в loop)
     if (millis() - lastUVUpdate >= UV_UPDATE_INTERVAL) {
         updateVEML6075();
         lastUVUpdate = millis();
+    }
+
+    // Автосохранение настроек (раз в минуту)
+    static unsigned long lastSaveTime = 0;  // Перенести сюда
+    if (millis() - lastSaveTime >= 60000) {
+        saveAllSettings();
+        lastSaveTime = millis();
     }
     
     // Вывод статуса (каждые 5 секунд)
@@ -197,9 +211,18 @@ void loop() {
             Serial.print(uvData.uvbThreshold, 2);
             Serial.print(F(" "));
             Serial.print(uvData.comparatorState ? F("PIN43:ON") : F("PIN43:OFF"));
-        }   
+        }
         
-        Serial.println();
+        if (timerPin.enabled) {
+            Serial.print(F(" | TIMER:"));
+            Serial.print(timerPin.getState() ? F("HIGH ") : F("LOW  "));
+            Serial.print(timerPin.lowSeconds);
+            Serial.print(F("/"));
+            Serial.print(timerPin.highSeconds);
+            Serial.print(F("s"));
+        } else {
+            Serial.print(F(" | TIMER:OFF"));
+        }
     }
     
     delay(10);

@@ -4,7 +4,7 @@
 
 // Создаём объект сенсора
 Adafruit_VEML6075 uvSensor = Adafruit_VEML6075();
-UVData uvData = {0.0, 0.0, 0.0, 5.0, false, false, 0}; // Уставка по умолчанию 5.0
+UVData uvData;
 
 // Инициализация датчика
 void initVEML6075() {
@@ -56,7 +56,7 @@ void initVEML6075() {
 // Установка уставки UVB
 void setUVBThreshold(float threshold) {
     if (threshold < 0) threshold = 0;
-    if (threshold > 1000) threshold = 1000; // Разумный предел
+    if (threshold > 100) threshold = 100; // Разумный предел
     
     if (abs(uvData.uvbThreshold - threshold) > 0.01) {
         uvData.uvbThreshold = threshold;

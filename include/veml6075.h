@@ -3,16 +3,38 @@
 
 #include <Arduino.h>
 #include <Adafruit_VEML6075.h>
+#include "Config.h"
 
 // Структура для хранения данных с датчика
 struct UVData {
-    float uva;          // Значение UVA (V40)
-    float uvb;          // Значение UVB (V41)
-    float uvIndex;      // Индекс UVI (V42)
-    float uvbThreshold;  // Уставка сравнения UVB (V44)
-    bool comparatorState; // Состояние пина 43
-    bool sensorOK;      // Флаг исправности датчика (V43)
+    float uva;          
+    float uvb;          
+    float uvIndex;      
+    float uvbThreshold;  
+    bool comparatorState; 
+    bool sensorOK;      
     unsigned long lastReadTime;
+    
+    // Конструктор с явной инициализацией всех полей
+    UVData() : 
+        uva(0.0), 
+        uvb(0.0), 
+        uvIndex(0.0), 
+        uvbThreshold(DEFAULT_UVB_THRESHOLD), 
+        comparatorState(false), 
+        sensorOK(false), 
+        lastReadTime(0) {}
+    
+    // Безопасное обновление уставки
+    bool setThreshold(float newThreshold) {
+        if (newThreshold >= MIN_UVB_THRESHOLD && newThreshold <= MAX_UVB_THRESHOLD) {
+            if (abs(uvbThreshold - newThreshold) > 0.01) {
+                uvbThreshold = newThreshold;
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 // Глобальный объект сенсора
