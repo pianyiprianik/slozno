@@ -34,6 +34,18 @@
 #define AUX1_PIN 46  // Пин для переменной 0/1
 #define AUX2_PIN 47  // Пин для переменной V31 (0/1)
 
+// ==================== UV ДАТЧИК ====================
+#define VEML6075_ADDR 0x10
+
+// Настройки времени интеграции (в миллисекундах)
+#define UV_INTEGRATION_TIME 100  // 50, 100, 200, 400 мс
+
+// Интервал чтения UV датчика (мс)
+#define UV_READ_INTERVAL 2000
+
+// Количество ошибок для отключения датчика
+#define UV_MAX_ERRORS 5
+
 // Параметры плавного пуска
 const int FREQ_STEP_SIZE = 8;        // Шаг увеличения частоты (Гц)
 const unsigned long FREQ_STEP_INTERVAL = 60;  // Интервал между шагами (мс)
@@ -70,6 +82,13 @@ const int PWM_DUTY_CYCLE = 512;     //  50% заполнения (1024/2)
 #define EEPROM_TEMP_CHECKSUM_2 24
 #define EEPROM_TARGET_FREQUENCY 40
 #define EEPROM_FREQ_CHECKSUM 44
+#define EEPROM_TARGET_FREQUENCY_2 50
+#define EEPROM_FREQ2_CHECKSUM 54
+
+// ==================== EEPROM ДЛЯ UV ДАТЧИКА (ЗАГОТОВКА) ====================
+// Сохранять калибровочные значения, если понадобится
+// #define EEPROM_UV_CALIB 60
+
 #define EEPROM_MAGIC_NUMBER 0x5A    //0x5A = 90 в десятичной
 
 #endif // CONFIG_H

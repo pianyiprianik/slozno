@@ -8,6 +8,7 @@
 #include "Bluetooth.h"
 #include "Eeprom_utils.h"
 #include "Aux_control.h"
+#include "veml6075.h"
 
 
 // Глобальные переменные для таймеров
@@ -15,7 +16,9 @@ unsigned long lastTempUpdate = 0;
 unsigned long lastControlUpdate = 0;
 unsigned long lastBluetoothCheck = 0;
 unsigned long lastV30ToggleTime = 0;
+unsigned long lastUVUpdate = 0;
 bool lastV30State = false;
+const unsigned long UV_UPDATE_INTERVAL = 2000;
 
 // Для отсчёта времени (из bluetooth)
 extern unsigned int v30TimerInterval;
@@ -37,6 +40,7 @@ void setup() {
     initFrequencyGenerators();
     aux1.init();
     aux2.init();
+    initVEML6075();
     
     // Загружаем сохраненные настройки
     loadAllSettings();
@@ -134,6 +138,12 @@ void loop() {
     // Обновление дополнительного пина
     aux1.update();
     aux2.update();
+
+    // Обновление UV датчика (добавить в loop)
+    if (millis() - lastUVUpdate >= UV_UPDATE_INTERVAL) {
+        updateVEML6075();
+        lastUVUpdate = millis();
+    }
     
     // Вывод статуса (каждые 5 секунд)
     static unsigned long lastPrintTime = 0;
@@ -178,6 +188,15 @@ void loop() {
         
         Serial.print(F(" | BT:"));
         Serial.print(millis() - lastBluetoothCheck < 10000 ? F("OK ") : F("WARN"));
+        Serial.println();
+
+        if (uvData.sensorOK) {
+            Serial.print(F(" | UV:"));
+            Serial.print(uvData.uvIndex, 2);
+        } else {
+            Serial.print(F(" | UV:NO SENSOR"));
+        }
+        
         Serial.println();
     }
     

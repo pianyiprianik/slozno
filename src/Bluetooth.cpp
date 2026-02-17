@@ -4,6 +4,7 @@
 #include "Aux_control.h"
 #include "Eeprom_utils.h"
 #include <Arduino.h>
+#include "veml6075.h"
 
 unsigned int v30TimerInterval = DEFAULT_TIMER_INTERVAL;
 
@@ -276,6 +277,12 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 31: return String(v30TimerInterval);  // Текущий интервал
             case 32: return String(aux2.getState() ? 1 : 0);
             case 33: return String(millis() / 1000);   // Прошедшее время (для отладки)
+            
+            // ===== UV ДАТЧИК =====
+            case 40: return String(uvData.uva, 2);  
+            case 41: return String(uvData.uvb, 2);
+            case 42: return String(uvData.uvIndex, 2);
+            case 43: return String(uvData.sensorOK ? 1 : 0);
         }
     }
     return "";
