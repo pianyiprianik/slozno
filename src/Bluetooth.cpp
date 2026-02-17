@@ -224,34 +224,41 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                     break;
 
                 case 32: // V30 - Управление пином 46 (0 или 1)
-                                // Проверка: должно быть 0 или 1
-                if (intValue == 0 || intValue == 1) {
-                    bool newState = (intValue == 1);
+                    // Проверка: должно быть 0 или 1
+                    if (intValue == 0 || intValue == 1) {
+                        bool newState = (intValue == 1);
                     
-                    // Сохраняем предыдущее состояние для проверки
-                    static bool lastAux2State = false;
+                        // Сохраняем предыдущее состояние для проверки
+                        static bool lastAux2State = false;
                     
-                    // Устанавливаем целевое состояние
-                    aux2.setTarget(newState);
+                        // Устанавливаем целевое состояние
+                        aux2.setTarget(newState);
                     
-                    // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
-                    if (lastAux2State != newState) {
-                        lastAux2State = newState;
+                        // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
+                        if (lastAux2State != newState) {
+                            lastAux2State = newState;
                         
-                        Serial.print(F("AUX2 changed to "));
-                        Serial.println(newState ? F("ON") : F("OFF"));
+                            Serial.print(F("AUX2 changed to "));
+                            Serial.println(newState ? F("ON") : F("OFF"));
                         
-                        // Сбрасываем второй генератор
-                        if (gen2.targetFrequency > 0) {
-                            gen2.reset();
-                            Serial.println(F("Generator 2 reset due to AUX2 change"));
+                            // Сбрасываем второй генератор
+                            if (gen2.targetFrequency > 0) {
+                                gen2.reset();
+                                Serial.println(F("Generator 2 reset due to AUX2 change"));
+                            }
                         }
+                        } else {
+                            Serial.print(F("Error: V31 value must be 0 or 1, received: "));
+                            Serial.println(intValue);
+                            }
+                    break;
+
+                case 44: // V44 - Уставка UVB
+                    floatValue = constrain(floatValue, 0.0, 100.0);
+                    if (abs(uvData.uvbThreshold - floatValue) > 0.01) {
+                        setUVBThreshold(floatValue);
                     }
-                } else {
-                    Serial.print(F("Error: V31 value must be 0 or 1, received: "));
-                    Serial.println(intValue);
-                }
-                break;
+                    break;
         }
     }
 }
@@ -283,6 +290,8 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 41: return String(uvData.uvb, 2);
             case 42: return String(uvData.uvIndex, 2);
             case 43: return String(uvData.sensorOK ? 1 : 0);
+            case 44: return String(uvData.uvbThreshold, 2);  
+            case 45: return String(uvData.comparatorState ? 1 : 0);
         }
     }
     return "";

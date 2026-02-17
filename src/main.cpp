@@ -191,11 +191,13 @@ void loop() {
         Serial.println();
 
         if (uvData.sensorOK) {
-            Serial.print(F(" | UV:"));
-            Serial.print(uvData.uvIndex, 2);
-        } else {
-            Serial.print(F(" | UV:NO SENSOR"));
-        }
+            Serial.print(F(" | UVB:"));
+            Serial.print(uvData.uvb, 2);
+            Serial.print(F("/"));
+            Serial.print(uvData.uvbThreshold, 2);
+            Serial.print(F(" "));
+            Serial.print(uvData.comparatorState ? F("PIN43:ON") : F("PIN43:OFF"));
+        }   
         
         Serial.println();
     }
