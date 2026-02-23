@@ -332,7 +332,9 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 52: return String(timerPin.enabled ? 1 : 0); // Состояние таймера
             case 53: return String(timerPin.getState() ? 1 : 0); // Текущее состояние пина
 
-
+            case 60: return String(getExtraTemp1(), 1);
+                
+            case 61: return String(getExtraTemp2(), 1);
         }
     }
     return "";

@@ -230,19 +230,21 @@ void loop() {
         }
 
         Serial.print(F(" | EXT1:"));
-        if (extraTemp1 > -50) {
-            Serial.print(extraTemp1, 1);
+        if (extraData1.valid) {
+            Serial.print(extraData1.filteredValue, 1);
             Serial.print(F("°C"));
+            if (extraData1.errorCount > 0) Serial.print(F("*"));  // * если были ошибки
         } else {
-            Serial.print(F("ERR"));
+            Serial.print(F("OFF"));
         }
     
         Serial.print(F(" EXT2:"));
-        if (extraTemp2 > -50) {
-            Serial.print(extraTemp2, 1);
+        if (extraData2.valid) {
+            Serial.print(extraData2.filteredValue, 1);
             Serial.print(F("°C"));
+            if (extraData2.errorCount > 0) Serial.print(F("*"));
         } else {
-            Serial.print(F("ERR"));
+            Serial.print(F("OFF"));
         }
 
     }

@@ -60,9 +60,9 @@ const int FREQ_RESET_VALUE = 1;        // Значение при сбросе (
 
 // ==================== ЗАЩИТА ПЕРЕМЕННЫХ ====================
 // Минимальные и максимальные значения для всех переменных
-const float MIN_UVB_THRESHOLD = 0.0;
-const float MAX_UVB_THRESHOLD = 100.0;
-const float DEFAULT_UVB_THRESHOLD = 5.0;
+const float MIN_UVB_THRESHOLD = 0.00;
+const float MAX_UVB_THRESHOLD = 100.00;
+const float DEFAULT_UVB_THRESHOLD = 5.00;
 
 const unsigned int DEFAULT_LOW_SECONDS = 5;
 const unsigned int DEFAULT_HIGH_SECONDS = 5;
@@ -81,10 +81,10 @@ const unsigned long DEFAULT_TIMER_INTERVAL = 60; // По умолчанию 60 �
 // ==================== ПАРАМЕТРЫ ТЕМПЕРАТУРЫ ====================
 const float MIN_TARGET_TEMP = 20.00;
 const float MAX_TARGET_TEMP = 40.00;
-const float HYSTERESIS = 1.0;
-const float TEMP_TOLERANCE = 0.5;
-const float TEMP_HYSTERESIS_LOW = 0.2;      //  Нижний порог гистерезиса
-const float TEMP_HYSTERESIS_HIGH = 0.2;     //  Верхний порог гистерезиса
+const float HYSTERESIS = 1.00;
+const float TEMP_TOLERANCE = 0.50;
+const float TEMP_HYSTERESIS_LOW = 0.10;      //  Нижний порог гистерезиса
+const float TEMP_HYSTERESIS_HIGH = 0.10;     //  Верхний порог гистерезиса
 
 // ==================== ТАЙМЕРЫ (в миллисекундах) ====================
 const unsigned long TEMP_UPDATE_INTERVAL = 2000;        //  Обновление температуры
