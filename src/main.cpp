@@ -11,7 +11,6 @@
 #include "veml6075.h"
 #include "Timer_pin.h"
 
-
 // Глобальные переменные для таймеров
 unsigned long lastTempUpdate = 0;
 unsigned long lastControlUpdate = 0;
@@ -44,7 +43,8 @@ void setup() {
     aux2.init();
     initVEML6075();
     timerPin.init();
-    
+
+
     // Загружаем сохраненные настройки
     loadAllSettings();
 
@@ -81,8 +81,13 @@ void loop() {
     // ===== ТАЙМЕР ДЛЯ V30 =====
     // Проверяем каждую секунду (чтобы не нагружать процессор)
     static unsigned long lastTimerCheck = 0;
-    //static unsigned long lastSaveTime = 0;
+    static unsigned long lastSaveTime = 0;
     const unsigned long SAVE_INTERVAL = 60000; // Сохранять каждую минуту
+
+    if (millis() - lastSaveTime >= SAVE_INTERVAL) {
+        saveAllSettings();
+        lastSaveTime = millis();
+    }
 
     if (millis() - lastTimerCheck >= 1000) {
         lastTimerCheck = millis();
@@ -153,7 +158,7 @@ void loop() {
     }
 
     // Автосохранение настроек (раз в минуту)
-    static unsigned long lastSaveTime = 0;  // Перенести сюда
+    //static unsigned long lastSaveTime = 0;  // Перенести сюда
     if (millis() - lastSaveTime >= 60000) {
         saveAllSettings();
         lastSaveTime = millis();
@@ -223,6 +228,23 @@ void loop() {
         } else {
             Serial.print(F(" | TIMER:OFF"));
         }
+
+        Serial.print(F(" | EXT1:"));
+        if (extraTemp1 > -50) {
+            Serial.print(extraTemp1, 1);
+            Serial.print(F("°C"));
+        } else {
+            Serial.print(F("ERR"));
+        }
+    
+        Serial.print(F(" EXT2:"));
+        if (extraTemp2 > -50) {
+            Serial.print(extraTemp2, 1);
+            Serial.print(F("°C"));
+        } else {
+            Serial.print(F("ERR"));
+        }
+
     }
     
     delay(10);

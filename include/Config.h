@@ -17,13 +17,15 @@
 #define ONE_WIRE_BUS_REACTOR_1 6
 #define ONE_WIRE_BUS_REACTOR_2 8
 
+#define ONE_WIRE_BUS_EXTRA_1 7
+#define ONE_WIRE_BUS_EXTRA_2 9
+
 // ТЭНы
 #define HEATER_PIN_1 4
 #define HEATER_PIN_2 3
 
 // Генератор частоты
 #define FREQ1_PIN 12
-
 #define FREQ1_MAX 10000
 #define FREQ1_TIMER Timer1
 

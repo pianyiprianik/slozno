@@ -119,7 +119,7 @@ void loadAllSettings() {
     loadFrequencies();  // Загружаем оба генератора
     loadTimerInterval();
 
-        // Загружаем V44
+    // Загружаем V44
     EEPROM.get(EEPROM_V44_MAGIC, magic);
     if (magic == EEPROM_MAGIC_V44) {
         EEPROM.get(EEPROM_V44_VALUE, tempFloat);

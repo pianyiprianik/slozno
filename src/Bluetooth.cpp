@@ -6,6 +6,7 @@
 #include <Arduino.h>
 #include "veml6075.h"
 #include "Timer_pin.h"
+#include <TemperatureSensors.h>
 
 unsigned int v30TimerInterval = DEFAULT_TIMER_INTERVAL;
 
@@ -216,80 +217,81 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                 }
                 break;
 
-                case 31: // V31 - Интервал таймера V30 (в секундах)
-                    intValue = constrain(intValue, MIN_TIMER_INTERVAL, MAX_TIMER_INTERVAL);
-                    if (v30TimerInterval != (unsigned int)intValue) {
-                        v30TimerInterval = intValue;
-                        Serial.print(F("V30 timer interval set to: "));
-                        Serial.print(v30TimerInterval);
-                        Serial.println(F(" seconds"));
+            case 31: // V31 - Интервал таймера V30 (в секундах)
+                if (intValue < MIN_TIMER_SECONDS) intValue = MIN_TIMER_SECONDS;
+                if (intValue > MAX_TIMER_SECONDS) intValue = MAX_TIMER_SECONDS;
+                if (v30TimerInterval != (unsigned int)intValue) {
+                    v30TimerInterval = intValue;
+                    Serial.print(F("V30 timer interval set to: "));
+                    Serial.print(v30TimerInterval);
+                    Serial.println(F(" seconds"));
             
-                        // Сохраняем в EEPROM (если нужно)
-                        saveTimerInterval();
-                    }
-                    break;
+                    // Сохраняем в EEPROM (если нужно)
+                    saveTimerInterval();
+                }
+                break;
 
-                case 32: // V30 - Управление пином 46 (0 или 1)
-                    // Проверка: должно быть 0 или 1
-                    if (intValue == 0 || intValue == 1) {
-                        bool newState = (intValue == 1);
+            case 32: // V30 - Управление пином 46 (0 или 1)
+                // Проверка: должно быть 0 или 1
+                if (intValue == 0 || intValue == 1) {
+                    bool newState = (intValue == 1);
                     
-                        // Сохраняем предыдущее состояние для проверки
-                        static bool lastAux2State = false;
+                    // Сохраняем предыдущее состояние для проверки
+                    static bool lastAux2State = false;
                     
-                        // Устанавливаем целевое состояние
-                        aux2.setTarget(newState);
+                    // Устанавливаем целевое состояние
+                    aux2.setTarget(newState);
                     
-                        // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
-                        if (lastAux2State != newState) {
-                            lastAux2State = newState;
+                    // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
+                    if (lastAux2State != newState) {
+                        lastAux2State = newState;
                         
-                            Serial.print(F("AUX2 changed to "));
-                            Serial.println(newState ? F("ON") : F("OFF"));
+                        Serial.print(F("AUX2 changed to "));
+                        Serial.println(newState ? F("ON") : F("OFF"));
                         
-                            // Сбрасываем второй генератор
-                            if (gen2.targetFrequency > 0) {
-                                gen2.reset();
-                                Serial.println(F("Generator 2 reset due to AUX2 change"));
-                            }
+                        // Сбрасываем второй генератор
+                        if (gen2.targetFrequency > 0) {
+                            gen2.reset();
+                            Serial.println(F("Generator 2 reset due to AUX2 change"));
                         }
-                        } else {
-                            Serial.print(F("Error: V31 value must be 0 or 1, received: "));
-                            Serial.println(intValue);
-                            }
-                    break;
-
-                case 44: // V44 - Уставка UVB
-                    if (!uvData.setThreshold(floatValue)) {
-                        Serial.print(F("V44 out of range: "));
-                        Serial.println(floatValue);
-                    } 
-                    break;
-
-                case 50:
-                    if (!timerPin.setLowSeconds(intValue)) {
-                        Serial.print(F("V50 out of range: "));
-                        Serial.println(intValue);
                     }
-                    break;
-                
-                // ===== ТАЙМЕР V51 =====
-                case 51:
-                    if (!timerPin.setHighSeconds(intValue)) {
-                        Serial.print(F("V51 out of range: "));
-                        Serial.println(intValue);
-                    }
-                    break;
-                
-                // ===== ТАЙМЕР V52 =====
-                case 52:
-                    if (intValue == 0 || intValue == 1) {
-                        timerPin.setEnabled(intValue == 1);
                     } else {
-                        Serial.print(F("V52 must be 0 or 1, got: "));
+                        Serial.print(F("Error: V31 value must be 0 or 1, received: "));
                         Serial.println(intValue);
-                    }
-                    break;
+                        }
+                break;
+
+            case 44: // V44 - Уставка UVB
+                if (!uvData.setThreshold(floatValue)) {
+                    Serial.print(F("V44 out of range: "));
+                    Serial.println(floatValue);
+                } 
+                break;
+
+            case 50:
+                if (!timerPin.setLowSeconds(intValue)) {
+                    Serial.print(F("V50 out of range: "));
+                    Serial.println(intValue);
+                }
+                break;
+                
+            // ===== ТАЙМЕР V51 =====
+            case 51:
+                if (!timerPin.setHighSeconds(intValue)) {
+                    Serial.print(F("V51 out of range: "));
+                    Serial.println(intValue);
+                }
+                break;
+                
+            // ===== ТАЙМЕР V52 =====
+            case 52:
+                if (intValue == 0 || intValue == 1) {
+                    timerPin.setEnabled(intValue == 1);
+                } else {
+                    Serial.print(F("V52 must be 0 or 1, got: "));
+                    Serial.println(intValue);
+                }
+                break; 
         }
     }
 }
@@ -329,6 +331,8 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 51: return String(timerPin.highSeconds);    // Текущее HIGH время
             case 52: return String(timerPin.enabled ? 1 : 0); // Состояние таймера
             case 53: return String(timerPin.getState() ? 1 : 0); // Текущее состояние пина
+
+
         }
     }
     return "";
