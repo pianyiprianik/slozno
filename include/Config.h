@@ -33,9 +33,12 @@
 #define FREQ2_MAX 5000  
 #define FREQ2_TIMER Timer5
 
+#define MODE_PIN FREQ1_PIN  // Тот же пин 12, но режимы меняются
+
 // ТРИГГЕР (новый выход)
 #define AUX1_PIN 46  // Пин для переменной 0/1
 #define AUX2_PIN 47  // Пин для переменной V31 (0/1)
+#define AUX3_PIN 42  // хз
 #define UV_COMPARATOR_PIN 43 
 
 #define TIMER_PIN 44
@@ -68,6 +71,7 @@ const unsigned int DEFAULT_LOW_SECONDS = 5;
 const unsigned int DEFAULT_HIGH_SECONDS = 5;
 
 // Магические числа для защиты EEPROM (усилим)
+const uint16_t EEPROM_MAGIC_V34 = 0xA9B0;  // Для AUX3
 const uint16_t EEPROM_MAGIC_V44 = 0xA1B2;
 const uint16_t EEPROM_MAGIC_V50 = 0xA3B4;
 const uint16_t EEPROM_MAGIC_V51 = 0xA5B6;

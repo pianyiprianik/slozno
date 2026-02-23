@@ -36,6 +36,11 @@ void saveAllSettings() {
     uint8_t enabledByte = timerPin.enabled ? 1 : 0;
     EEPROM.put(EEPROM_V52_VALUE, enabledByte);
     EEPROM.put(EEPROM_V52_MAGIC, EEPROM_MAGIC_V52);
+
+    // Сохраняем V32 (AUX3)
+    uint8_t aux3State = aux3.getState() ? 1 : 0;
+    EEPROM.put(EEPROM_V34_VALUE, aux3State);
+    EEPROM.put(EEPROM_V34_MAGIC, EEPROM_MAGIC_V34);
     
     Serial.println(F("All settings saved to EEPROM"));
 }
@@ -114,10 +119,21 @@ void loadAllSettings() {
     float tempFloat;
     unsigned int tempInt;
     uint8_t tempByte;
+    uint8_t savedState;
     
     loadTargetTemps(heater1.targetTemp, heater2.targetTemp);
     loadFrequencies();  // Загружаем оба генератора
     loadTimerInterval();
+
+    EEPROM.get(EEPROM_V34_MAGIC, magic);
+    if (magic == EEPROM_MAGIC_V34) {
+        EEPROM.get(EEPROM_V34_VALUE, savedState);
+        if (savedState == 0 || savedState == 1) {
+            aux3.setTarget(savedState == 1);
+            Serial.print(F("Loaded V32: "));
+            Serial.println(savedState);
+        }
+    }
 
     // Загружаем V44
     EEPROM.get(EEPROM_V44_MAGIC, magic);

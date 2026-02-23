@@ -219,7 +219,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
 
             case 31: // V31 - Интервал таймера V30 (в секундах)
                 if (intValue < MIN_TIMER_SECONDS) intValue = MIN_TIMER_SECONDS;
-                if (intValue > MAX_TIMER_SECONDS) intValue = MAX_TIMER_SECONDS;
+            if (intValue > MAX_TIMER_SECONDS) intValue = MAX_TIMER_SECONDS;
                 if (v30TimerInterval != (unsigned int)intValue) {
                     v30TimerInterval = intValue;
                     Serial.print(F("V30 timer interval set to: "));
@@ -256,7 +256,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         }
                     }
                     } else {
-                        Serial.print(F("Error: V31 value must be 0 or 1, received: "));
+                        Serial.print(F("Error: V32 value must be 0 or 1, received: "));
                         Serial.println(intValue);
                         }
                 break;
@@ -291,7 +291,32 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                     Serial.print(F("V52 must be 0 or 1, got: "));
                     Serial.println(intValue);
                 }
-                break; 
+                break;
+
+            case 63: // V34 - Управление пином 46 (0 или 1)
+                // Проверка: должно быть 0 или 1
+                if (intValue == 0 || intValue == 1) {
+                    bool newState = (intValue == 1);
+                    
+                    // Сохраняем предыдущее состояние для проверки
+                    static bool lastAux3State = false;
+                    
+                    // Устанавливаем целевое состояние
+                    aux3.setTarget(newState);
+                    
+                    // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
+                    if (lastAux3State != newState) {
+                        lastAux3State = newState;
+                        
+                        Serial.print(F("AUX3 changed to "));
+                        Serial.println(newState ? F("ON") : F("OFF"));
+                    }
+                } else {
+                    Serial.print(F("Error: V34 value must be 0 or 1, received: "));
+                    Serial.println(intValue);
+                }
+                break;
+            
         }
     }
 }
@@ -318,6 +343,7 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 32: return String(aux2.getState() ? 1 : 0);
             case 33: return String(millis() / 1000);   // Прошедшее время (для отладки)
             
+            
             // ===== UV ДАТЧИК =====
             case 40: return String(uvData.uva, 2);  
             case 41: return String(uvData.uvb, 2);
@@ -335,6 +361,8 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 60: return String(getExtraTemp1(), 1);
                 
             case 61: return String(getExtraTemp2(), 1);
+            
+            case 63: return String(aux3.getState() ? 1 : 0);
         }
     }
     return "";

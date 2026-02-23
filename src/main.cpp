@@ -41,6 +41,7 @@ void setup() {
     initFrequencyGenerators();
     aux1.init();
     aux2.init();
+    aux3.init();
     initVEML6075();
     timerPin.init();
 
@@ -149,6 +150,7 @@ void loop() {
     // Обновление дополнительного пина
     aux1.update();
     aux2.update();
+    aux3.update();
     timerPin.update();
 
     // Обновление UV датчика (добавить в loop)
@@ -204,6 +206,8 @@ void loop() {
         Serial.print(aux1.getState() ? F("ON ") : F("OFF"));
         Serial.print(F(" | AUX2:"));
         Serial.print(aux2.getState() ? F("ON ") : F("OFF"));
+        Serial.print(F(" AUX3:"));
+        Serial.print(aux3.getState() ? F("ON") : F("OFF"));
         
         Serial.print(F(" | BT:"));
         Serial.print(millis() - lastBluetoothCheck < 10000 ? F("OK ") : F("WARN"));
