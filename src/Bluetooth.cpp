@@ -188,7 +188,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
             
             // ===== ДОПОЛНИТЕЛЬНЫЙ ПИН 46 =====
             case 30: // V30 - Управление пином 46 (0 или 1)
-                                // Проверка: должно быть 0 или 1
+                // Проверка: должно быть 0 или 1
                 if (intValue == 0 || intValue == 1) {
                     bool newState = (intValue == 1);
                     
@@ -345,14 +345,8 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                     if (lastAux4State != newState) {
                         lastAux4State = newState;
                         
-                        Serial.print(F("AUX1 changed to "));
+                        Serial.print(F("AUX4 changed to "));
                         Serial.println(newState ? F("ON") : F("OFF"));
-                        
-                        // Сбрасываем второй генератор
-                        if (gen3.targetFrequency > 0) {
-                            gen3.reset();
-                            Serial.println(F("Generator 3 reset due to AUX4 change"));
-                        }
                     }
                 } else {
                     Serial.print(F("Error: V30 value must be 0 or 1, received: "));
@@ -377,12 +371,6 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         
                         Serial.print(F("AUX5 changed to "));
                         Serial.println(newState ? F("ON") : F("OFF"));
-                        
-                        // Сбрасываем второй генератор
-                        if (gen3.targetFrequency > 0) {
-                            gen3.reset();
-                            Serial.println(F("Generator 2 reset due to AUX2 change"));
-                        }
                     }
                     } else {
                         Serial.print(F("Error: V32 value must be 0 or 1, received: "));

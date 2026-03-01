@@ -22,7 +22,7 @@ struct FrequencyGenerator {
     unsigned long lastChangeTime;
     
     // Конструктор с максимальной частотой
-    FrequencyGenerator(int p, int timer, int maxF) : 
+    FrequencyGenerator(int p, int timer, int maxF, bool soft = true) : 
         pin(p), timerId(timer), maxFreq(maxF),
         targetFrequency(0), currentFrequency(0), 
         active(false), needReset(false),
