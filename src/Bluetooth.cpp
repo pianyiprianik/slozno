@@ -316,6 +316,79 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                     Serial.println(intValue);
                 }
                 break;
+
+            // ===== ГЕНЕРАТОР 3 (НОВЫЙ) =====
+            case 65: // V65 - Gen3 (пин 5)
+                intValue = constrain(intValue, 0, FREQ3_MAX);
+                if (gen3.targetFrequency != intValue) {
+                    if (millis() - gen3.lastChangeTime >= FREQUENCY_CHANGE_DELAY) {
+                        setGenerator3(intValue);
+                        gen3.lastChangeTime = millis();
+                        saveFrequencies();
+                    }
+                }
+                break;
+            
+            // ===== ДОПОЛНИТЕЛЬНЫЙ ПИН 46 =====
+            case 66: // V66 - Управление пином 46 (0 или 1)
+                                // Проверка: должно быть 0 или 1
+                if (intValue == 0 || intValue == 1) {
+                    bool newState = (intValue == 1);
+                    
+                    // Сохраняем предыдущее состояние для проверки
+                    static bool lastAux4State = false;
+                    
+                    // Устанавливаем целевое состояние
+                    aux4.setTarget(newState);
+                    
+                    // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
+                    if (lastAux4State != newState) {
+                        lastAux4State = newState;
+                        
+                        Serial.print(F("AUX1 changed to "));
+                        Serial.println(newState ? F("ON") : F("OFF"));
+                        
+                        // Сбрасываем второй генератор
+                        if (gen3.targetFrequency > 0) {
+                            gen3.reset();
+                            Serial.println(F("Generator 3 reset due to AUX4 change"));
+                        }
+                    }
+                } else {
+                    Serial.print(F("Error: V30 value must be 0 or 1, received: "));
+                    Serial.println(intValue);
+                }
+                break;
+
+            case 67: // V67 - Управление пином 46 (0 или 1)
+                // Проверка: должно быть 0 или 1
+                if (intValue == 0 || intValue == 1) {
+                    bool newState = (intValue == 1);
+                    
+                    // Сохраняем предыдущее состояние для проверки
+                    static bool lastAux5State = false;
+                    
+                    // Устанавливаем целевое состояние
+                    aux5.setTarget(newState);
+                    
+                    // Если состояние ИЗМЕНИЛОСЬ, сбрасываем генератор
+                    if (lastAux5State != newState) {
+                        lastAux5State = newState;
+                        
+                        Serial.print(F("AUX5 changed to "));
+                        Serial.println(newState ? F("ON") : F("OFF"));
+                        
+                        // Сбрасываем второй генератор
+                        if (gen3.targetFrequency > 0) {
+                            gen3.reset();
+                            Serial.println(F("Generator 2 reset due to AUX2 change"));
+                        }
+                    }
+                    } else {
+                        Serial.print(F("Error: V32 value must be 0 or 1, received: "));
+                        Serial.println(intValue);
+                        }
+                break;
             
         }
     }
@@ -359,10 +432,13 @@ String onRequested(char variableType, uint8_t variableIndex) {
             case 53: return String(timerPin.getState() ? 1 : 0); // Текущее состояние пина
 
             case 60: return String(getExtraTemp1(), 1);
-                
             case 61: return String(getExtraTemp2(), 1);
-            
             case 63: return String(aux3.getState() ? 1 : 0);
+
+            // ===== ГЕНЕРАТОР 3 (НОВЫЙ) =====
+            case 65: return String(gen3.targetFrequency);   // V33 - целевая частота
+            case 66: return String(aux4.getState() ? 1 : 0);
+            case 67: return String(aux5.getState() ? 1 : 0);
         }
     }
     return "";

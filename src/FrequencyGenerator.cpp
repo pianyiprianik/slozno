@@ -5,10 +5,15 @@
 // Создаём генераторы с разными максимальными частотами
 FrequencyGenerator gen1(FREQ1_PIN, 1, FREQ1_MAX);  // 1000 Гц
 FrequencyGenerator gen2(FREQ2_PIN, 5, FREQ2_MAX);  // 5000 Гц
+FrequencyGenerator gen3(FREQ3_PIN, 3, FREQ3_MAX);  // 5000 Гц
 
 // Адреса в EEPROM для второго генератора
 #define EEPROM_FREQ2 50
 #define EEPROM_FREQ2_CHECKSUM 54
+
+// Адреса в EEPROM для третьего генератора
+#define EEPROM_FREQ3 110
+#define EEPROM_FREQ3_CHECKSUM 114
 
 // Проверка допустимости частоты
 bool FrequencyGenerator::isValidFreq(int freq) {
@@ -26,6 +31,11 @@ void FrequencyGenerator::init() {
             Timer1.pwm(pin, 0);
             Serial.print(F("Gen1 (0-1000Hz) on pin "));
             break;
+        case 3:
+            Timer3.initialize(200);
+            Timer3.pwm(pin, 0);
+            Serial.print(F("Gen3 (0-5000Hz) on pin "));
+            break;
         case 5:
             Timer5.initialize(200);
             Timer5.pwm(pin, 0);
@@ -40,6 +50,7 @@ void FrequencyGenerator::applyFrequency(int freq) {
     if (freq == 0) {
         switch(timerId) {
             case 1: Timer1.setPwmDuty(pin, 0); break;
+            case 3: Timer3.setPwmDuty(pin, 0); break;
             case 5: Timer5.setPwmDuty(pin, 0); break;
         }
         digitalWrite(pin, LOW);
@@ -56,6 +67,10 @@ void FrequencyGenerator::applyFrequency(int freq) {
             case 1:
                 Timer1.setPeriod(period);
                 Timer1.setPwmDuty(pin, PWM_DUTY_CYCLE);
+                break;
+            case 3:
+                Timer3.setPeriod(period);
+                Timer3.setPwmDuty(pin, PWM_DUTY_CYCLE);
                 break;
             case 5:
                 Timer5.setPeriod(period);
@@ -139,6 +154,7 @@ void FrequencyGenerator::update() {
 void initFrequencyGenerators() {
     gen1.init();
     gen2.init();
+    gen3.init();
     Serial.println(F("All frequency generators initialized"));
 }
 
@@ -146,6 +162,7 @@ void initFrequencyGenerators() {
 void updateAllGenerators() {
     gen1.update();
     gen2.update();
+    gen3.update();
 }
 
 // Установка частоты первого генератора
@@ -158,6 +175,11 @@ void setGenerator2(int freq) {
     gen2.setTarget(freq);
 }
 
+// Установка частоты третьего генератора
+void setGenerator3(int freq) {
+    gen3.setTarget(freq);
+}
+
 // Сохранение частот в EEPROM
 void saveFrequencies() {
     EEPROM.put(EEPROM_TARGET_FREQUENCY, gen1.targetFrequency);
@@ -167,6 +189,10 @@ void saveFrequencies() {
     EEPROM.put(EEPROM_FREQ2, gen2.targetFrequency);
     int checksum2 = gen2.targetFrequency + EEPROM_MAGIC_NUMBER;
     EEPROM.put(EEPROM_FREQ2_CHECKSUM, checksum2);
+
+    EEPROM.put(EEPROM_FREQ3, gen3.targetFrequency);
+    int checksum3 = gen3.targetFrequency + EEPROM_MAGIC_NUMBER;
+    EEPROM.put(EEPROM_FREQ3_CHECKSUM, checksum3);
 }
 
 // Загрузка частот из EEPROM
@@ -186,5 +212,12 @@ void loadFrequencies() {
     if (loadedFreq + EEPROM_MAGIC_NUMBER == savedChecksum && 
         loadedFreq >= 0 && loadedFreq <= FREQ2_MAX) {
         gen2.targetFrequency = loadedFreq;
+    }
+
+    EEPROM.get(EEPROM_FREQ3, loadedFreq);
+    EEPROM.get(EEPROM_FREQ3_CHECKSUM, savedChecksum);
+    if (loadedFreq + EEPROM_MAGIC_NUMBER == savedChecksum && 
+        loadedFreq >= 0 && loadedFreq <= FREQ3_MAX) {
+        gen3.targetFrequency = loadedFreq;
     }
 }

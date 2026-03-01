@@ -29,6 +29,10 @@
 #define FREQ1_MAX 10000
 #define FREQ1_TIMER Timer1
 
+#define FREQ3_PIN 5
+#define FREQ3_MAX 5000  
+#define FREQ3_TIMER Timer3
+
 #define FREQ2_PIN 45  
 #define FREQ2_MAX 5000  
 #define FREQ2_TIMER Timer5
@@ -37,8 +41,12 @@
 
 // ТРИГГЕР (новый выход)
 #define AUX1_PIN 46  // Пин для переменной 0/1
-#define AUX2_PIN 47  // Пин для переменной V31 (0/1)
+#define AUX2_PIN 47  // Пин для переменной 0/1
 #define AUX3_PIN 42  // хз
+
+#define AUX4_PIN 41  // вообще хз ???
+#define AUX5_PIN 40  // вообще хз ???
+
 #define UV_COMPARATOR_PIN 43 
 
 #define TIMER_PIN 44
@@ -116,5 +124,7 @@ const int PWM_DUTY_CYCLE = 512;     //  50% заполнения (1024/2)
 // #define EEPROM_UV_CALIB 60
 
 #define EEPROM_MAGIC_NUMBER 0x5A    //0x5A = 90 в десятичной
+const uint16_t EEPROM_MAGIC_V36 = 0xB1C2;  // Для AUX4
+const uint16_t EEPROM_MAGIC_V37 = 0xB3C4;  // Для AUX5
 
 #endif // CONFIG_

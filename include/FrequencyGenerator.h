@@ -39,11 +39,13 @@ struct FrequencyGenerator {
 // Глобальные объекты
 extern FrequencyGenerator gen1;  // Timer1 на пине 12
 extern FrequencyGenerator gen2;  // Timer5 на пине 45
+extern FrequencyGenerator gen3;  // Timer3 на пине 5
 
 // Функции
 void initFrequencyGenerators();
 void setGenerator1(int freq);
 void setGenerator2(int freq);
+void setGenerator3(int freq);
 void updateAllGenerators();
 void saveFrequencies();
 void loadFrequencies();

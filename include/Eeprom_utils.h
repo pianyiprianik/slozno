@@ -10,6 +10,11 @@
 #define EEPROM_V34_VALUE 104
 #define EEPROM_V34_MAGIC 108
 
+#define EEPROM_V36_VALUE 116
+#define EEPROM_V36_MAGIC 120
+#define EEPROM_V37_VALUE 122
+#define EEPROM_V37_MAGIC 126
+
 // Функции для работы с EEPROM
 void saveTargetTemps(float temp1, float temp2);         //  Сохраняет целевые температуры ёмкостей в EEPROM
 void loadTargetTemps(float &temp1, float &temp2);       //  Загружает целевые температуры из EEPROM

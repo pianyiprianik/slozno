@@ -41,6 +41,16 @@ void saveAllSettings() {
     uint8_t aux3State = aux3.getState() ? 1 : 0;
     EEPROM.put(EEPROM_V34_VALUE, aux3State);
     EEPROM.put(EEPROM_V34_MAGIC, EEPROM_MAGIC_V34);
+
+    // Сохраняем (AUX4)
+    uint8_t aux4State = aux4.getState() ? 1 : 0;
+    EEPROM.put(EEPROM_V36_VALUE, aux4State);
+    EEPROM.put(EEPROM_V36_MAGIC, EEPROM_MAGIC_V36);
+    
+    // Сохраняем (AUX5)
+    uint8_t aux5State = aux5.getState() ? 1 : 0;
+    EEPROM.put(EEPROM_V37_VALUE, aux5State);
+    EEPROM.put(EEPROM_V37_MAGIC, EEPROM_MAGIC_V37);
     
     Serial.println(F("All settings saved to EEPROM"));
 }
@@ -120,7 +130,7 @@ void loadAllSettings() {
     unsigned int tempInt;
     uint8_t tempByte;
     uint8_t savedState;
-    
+
     loadTargetTemps(heater1.targetTemp, heater2.targetTemp);
     loadFrequencies();  // Загружаем оба генератора
     loadTimerInterval();
@@ -176,6 +186,28 @@ void loadAllSettings() {
             timerPin.setEnabled(tempByte == 1);
             Serial.print(F("Loaded V52: "));
             Serial.println(tempByte);
+        }
+    }
+
+    // Загружаем V36 (AUX4)
+    EEPROM.get(EEPROM_V36_MAGIC, magic);
+    if (magic == EEPROM_MAGIC_V36) {
+        EEPROM.get(EEPROM_V36_VALUE, savedState);
+        if (savedState == 0 || savedState == 1) {
+            aux4.setTarget(savedState == 1);
+            Serial.print(F("Loaded V36: "));
+            Serial.println(savedState);
+        }
+    }
+    
+    // Загружаем V37 (AUX5)
+    EEPROM.get(EEPROM_V37_MAGIC, magic);
+    if (magic == EEPROM_MAGIC_V37) {
+        EEPROM.get(EEPROM_V37_VALUE, savedState);
+        if (savedState == 0 || savedState == 1) {
+            aux5.setTarget(savedState == 1);
+            Serial.print(F("Loaded V37: "));
+            Serial.println(savedState);
         }
     }
 }

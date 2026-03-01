@@ -89,5 +89,7 @@ public:
 extern AuxPin aux1;  // Пин 48 (V30)
 extern AuxPin aux2;  // Пин 47 (V31)
 extern AuxPin aux3;  // Пин 47 (V31)
+extern AuxPin aux4; 
+extern AuxPin aux5; 
 
 #endif // AUX_CONTROL_H

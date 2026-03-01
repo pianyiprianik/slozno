@@ -42,6 +42,8 @@ void setup() {
     aux1.init();
     aux2.init();
     aux3.init();
+    aux4.init();
+    aux5.init();
     initVEML6075();
     timerPin.init();
 
@@ -52,6 +54,7 @@ void setup() {
     // Устанавливаем сохранённые частоты
     setGenerator1(gen1.targetFrequency);
     setGenerator2(gen2.targetFrequency);
+    setGenerator3(gen3.targetFrequency);
     
     Serial.print(F("Loaded target temperature 1: "));
     Serial.println(heater1.targetTemp, 1);
@@ -151,6 +154,8 @@ void loop() {
     aux1.update();
     aux2.update();
     aux3.update();
+    aux4.update();
+    aux5.update();
     timerPin.update();
 
     // Обновление UV датчика (добавить в loop)
@@ -197,9 +202,13 @@ void loop() {
         Serial.print(F(" | FREQ1:"));
         Serial.print(gen1.currentFrequency);
         Serial.print(gen1.active ? F("*") : F(" "));
-        Serial.print(F("Hz FREQ2:"));
+        Serial.print(F(" | Hz FREQ2:"));
         Serial.print(gen2.currentFrequency);
         Serial.print(gen2.active ? F("*") : F(" "));
+        Serial.print(F("Hz"));
+        Serial.print(F(" | Hz FREQ3:"));
+        Serial.print(gen3.currentFrequency);
+        Serial.print(gen3.active ? F("*") : F(" "));
         Serial.print(F("Hz"));
 
         Serial.print(F(" | AUX1:"));
