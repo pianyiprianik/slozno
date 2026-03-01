@@ -17,12 +17,31 @@ unsigned long lastControlUpdate = 0;
 unsigned long lastBluetoothCheck = 0;
 unsigned long lastV30ToggleTime = 0;
 unsigned long lastUVUpdate = 0;
+unsigned long lastAutoSaveTime = 0;
+
+// Внешние переменные
+extern Heater heater1;
+extern Heater heater2;
+extern FrequencyGenerator gen1;
+extern FrequencyGenerator gen2;
+extern FrequencyGenerator gen3;
+extern UVData uvData;
+extern TimerPin timerPin;
+extern AuxPin aux1;
+extern AuxPin aux2;
+extern AuxPin aux3;
+extern AuxPin aux4;
+extern AuxPin aux5;
+extern unsigned int v30TimerInterval;
+
 bool lastV30State = false;
 const unsigned long UV_UPDATE_INTERVAL = 2000;
 
 // Для отсчёта времени (из bluetooth)
 extern unsigned int v30TimerInterval;
 extern void saveAllSettings();
+
+void printSystemStatus();
 
 void setup() {
     // Отключаем Watchdog при старте
@@ -50,6 +69,10 @@ void setup() {
 
     // Загружаем сохраненные настройки
     loadAllSettings();
+
+    // Синхронизируем объекты ТЭНов с загруженными переменными
+    heater1.permission = heatingPermission1;
+    heater2.permission = heatingPermission2;
 
     // Устанавливаем сохранённые частоты
     setGenerator1(gen1.targetFrequency);
@@ -165,8 +188,8 @@ void loop() {
     }
 
     // Автосохранение настроек (раз в минуту)
-    //static unsigned long lastSaveTime = 0;  // Перенести сюда
-    if (millis() - lastSaveTime >= 60000) {
+    //static unsigned long lastSaveTime = 0;    // Перенести сюда
+    if (millis() - lastSaveTime >= 10000) {     // 10 секунд
         saveAllSettings();
         lastSaveTime = millis();
     }

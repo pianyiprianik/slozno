@@ -34,6 +34,9 @@ struct Heater {
 extern Heater heater1;
 extern Heater heater2;
 
+extern bool heatingPermission1;  // V7
+extern bool heatingPermission2;  // V17
+
 // Функции управления
 void initHeaters();
 void updateHeaterControl(Heater &heater, float lowThreshold, float highThreshold);

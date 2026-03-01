@@ -119,6 +119,8 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
         float floatValue = valueAsText.toFloat();
         int intValue = valueAsText.toInt();
 
+        bool settingsChanged = false;  // Флаг для сохранения
+
         // Дополнительная защита: проверяем разумность значения
         if (abs(floatValue) > 10000) {  // Защита от космических чисел
             Serial.print(F("Value too large: "));
@@ -136,13 +138,22 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                     Serial.print(heater1.targetTemp, 1);
                     Serial.println(F("°C"));
                     saveTargetTemps(heater1.targetTemp, heater2.targetTemp);
+                    settingsChanged = true;
                 }
                 break;
                 
-            case 7:
-                heater1.permission = (intValue == 1);
-                Serial.print(F("Heating permission 1: "));
-                Serial.println(heater1.permission ? F("ON") : F("OFF"));
+            case 7: // V7 - Разрешение нагрева 1
+                {
+                    bool newState = (intValue == 1);
+                    if (heatingPermission1 != newState) {  // используем глобальную переменную
+                        heatingPermission1 = newState;
+                        // Также обновляем permission в объекте heater1 для совместимости
+                        heater1.permission = newState;
+                        Serial.print(F("Heating permission 1: "));
+                        Serial.println(heatingPermission1 ? F("ON") : F("OFF"));
+                        settingsChanged = true;
+                    }
+                }
                 break;
                 
             // Емкость 2
@@ -154,13 +165,22 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                     Serial.print(heater2.targetTemp, 1);
                     Serial.println(F("°C"));
                     saveTargetTemps(heater1.targetTemp, heater2.targetTemp);
+                    settingsChanged = true;
                 }
                 break;
                 
-            case 17:
-                heater2.permission = (intValue == 1);
-                Serial.print(F("Heating permission 2: "));
-                Serial.println(heater2.permission ? F("ON") : F("OFF"));
+            case 17:    // V17 - Разрешение нагрева 2
+                {
+                    bool newState = (intValue == 1);
+                    if (heatingPermission2 != newState) {  // используем глобальную переменную
+                        heatingPermission2 = newState;
+                        // Также обновляем permission в объекте heater2
+                        heater2.permission = newState;
+                        Serial.print(F("Heating permission 2: "));
+                        Serial.println(heatingPermission2 ? F("ON") : F("OFF"));
+                        settingsChanged = true;
+                    }
+                }
                 break;
                 
             // Частота
@@ -171,6 +191,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         setGenerator1(intValue);
                         gen1.lastChangeTime = millis();
                         saveFrequencies();
+                        settingsChanged = true;
                     }
                 }
                 break;
@@ -182,6 +203,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         setGenerator2(intValue);
                         gen2.lastChangeTime = millis();
                         saveFrequencies();
+                        settingsChanged = true;
                     }
                 }
                 break;
@@ -210,6 +232,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                             gen2.reset();
                             Serial.println(F("Generator 2 reset due to AUX1 change"));
                         }
+                        settingsChanged = true;
                     }
                 } else {
                     Serial.print(F("Error: V30 value must be 0 or 1, received: "));
@@ -219,7 +242,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
 
             case 31: // V31 - Интервал таймера V30 (в секундах)
                 if (intValue < MIN_TIMER_SECONDS) intValue = MIN_TIMER_SECONDS;
-            if (intValue > MAX_TIMER_SECONDS) intValue = MAX_TIMER_SECONDS;
+                if (intValue > MAX_TIMER_SECONDS) intValue = MAX_TIMER_SECONDS;
                 if (v30TimerInterval != (unsigned int)intValue) {
                     v30TimerInterval = intValue;
                     Serial.print(F("V30 timer interval set to: "));
@@ -228,6 +251,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
             
                     // Сохраняем в EEPROM (если нужно)
                     saveTimerInterval();
+                    settingsChanged = true;
                 }
                 break;
 
@@ -254,6 +278,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                             gen2.reset();
                             Serial.println(F("Generator 2 reset due to AUX2 change"));
                         }
+                        settingsChanged = true;
                     }
                     } else {
                         Serial.print(F("Error: V32 value must be 0 or 1, received: "));
@@ -265,6 +290,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                 if (!uvData.setThreshold(floatValue)) {
                     Serial.print(F("V44 out of range: "));
                     Serial.println(floatValue);
+                    settingsChanged = true;
                 } 
                 break;
 
@@ -272,6 +298,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                 if (!timerPin.setLowSeconds(intValue)) {
                     Serial.print(F("V50 out of range: "));
                     Serial.println(intValue);
+                    settingsChanged = true;
                 }
                 break;
                 
@@ -280,6 +307,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                 if (!timerPin.setHighSeconds(intValue)) {
                     Serial.print(F("V51 out of range: "));
                     Serial.println(intValue);
+                    settingsChanged = true;
                 }
                 break;
                 
@@ -287,6 +315,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
             case 52:
                 if (intValue == 0 || intValue == 1) {
                     timerPin.setEnabled(intValue == 1);
+                    settingsChanged = true;
                 } else {
                     Serial.print(F("V52 must be 0 or 1, got: "));
                     Serial.println(intValue);
@@ -311,6 +340,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         Serial.print(F("AUX3 changed to "));
                         Serial.println(newState ? F("ON") : F("OFF"));
                     }
+                    settingsChanged = true;
                 } else {
                     Serial.print(F("Error: V34 value must be 0 or 1, received: "));
                     Serial.println(intValue);
@@ -325,13 +355,14 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         setGenerator3(intValue);
                         gen3.lastChangeTime = millis();
                         saveFrequencies();
+                        settingsChanged = true;
                     }
                 }
                 break;
             
             // ===== ДОПОЛНИТЕЛЬНЫЙ ПИН 46 =====
             case 66: // V66 - Управление пином 46 (0 или 1)
-                                // Проверка: должно быть 0 или 1
+                // Проверка: должно быть 0 или 1
                 if (intValue == 0 || intValue == 1) {
                     bool newState = (intValue == 1);
                     
@@ -348,6 +379,7 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         Serial.print(F("AUX4 changed to "));
                         Serial.println(newState ? F("ON") : F("OFF"));
                     }
+                    settingsChanged = true;
                 } else {
                     Serial.print(F("Error: V30 value must be 0 or 1, received: "));
                     Serial.println(intValue);
@@ -372,12 +404,19 @@ void onReceived(char variableType, uint8_t variableIndex, String valueAsText) {
                         Serial.print(F("AUX5 changed to "));
                         Serial.println(newState ? F("ON") : F("OFF"));
                     }
+                    settingsChanged = true;
                     } else {
                         Serial.print(F("Error: V32 value must be 0 or 1, received: "));
                         Serial.println(intValue);
                         }
                 break;
             
+        }
+
+        // Если были изменения - сохраняем в EEPROM
+        if (settingsChanged) {
+            saveAllSettings();
+            Serial.println(F("Settings saved to EEPROM"));
         }
     }
 }

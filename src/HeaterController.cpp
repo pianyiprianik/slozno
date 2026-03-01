@@ -5,6 +5,11 @@
 Heater heater1(HEATER_PIN_1);
 Heater heater2(HEATER_PIN_2);
 
+
+// ОПРЕДЕЛЯЕМ переменные для разрешений (ВОТ ЗДЕСЬ!)
+bool heatingPermission1 = true;  // V7 - разрешение нагрева 1
+bool heatingPermission2 = true;  // V17 - разрешение нагрева 2
+
 // Инициализация всех ТЭНов
 void initHeaters() {
     heater1.init();

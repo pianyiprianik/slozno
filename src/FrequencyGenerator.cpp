@@ -180,6 +180,7 @@ void setGenerator3(int freq) {
     gen3.setTarget(freq);
 }
 
+/*
 // Сохранение частот в EEPROM
 void saveFrequencies() {
     EEPROM.put(EEPROM_TARGET_FREQUENCY, gen1.targetFrequency);
@@ -221,3 +222,4 @@ void loadFrequencies() {
         gen3.targetFrequency = loadedFreq;
     }
 }
+    */
