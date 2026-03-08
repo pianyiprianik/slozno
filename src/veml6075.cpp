@@ -6,6 +6,10 @@
 Adafruit_VEML6075 uvSensor = Adafruit_VEML6075();
 UVData uvData;
 
+// Таймер для восстановления
+static unsigned long lastRecoveryTime = 0;
+const unsigned long UV_RECOVERY_INTERVAL = 10000; // 10 секунд
+
 // Инициализация датчика
 void initVEML6075() {
     Serial.print(F("Initializing VEML6075 UV sensor... "));
@@ -41,37 +45,63 @@ void initVEML6075() {
         
         if (nDevices == 0) {
             Serial.println(F("No I2C devices found"));
+        } else {
+            // Если есть устройства, но не VEML6075, пробуем другой адрес
+            Serial.println(F("Trying alternative init..."));
+            delay(500);
+            if (uvSensor.begin()) {
+                Serial.println(F("OK on second attempt!"));
+                uvData.sensorOK = true;
+            } else {
+                uvData.sensorOK = false;
+            }
         }
-        
-        uvData.sensorOK = false;
-        return;
+    } else {
+        uvData.sensorOK = true;
+        Serial.println(F("OK"));
     }
     
-    uvData.sensorOK = true;
-    Serial.println(F("OK"));
     Serial.print(F("UV comparator pin initialized on "));
     Serial.println(UV_COMPARATOR_PIN);
+}
+
+// Принудительный сброс датчика
+void resetUVSensor() {
+    Serial.println(F("Resetting UV sensor..."));
+    uvData.sensorOK = false;
+    uvData.valid = false;
+    
+    // Переинициализируем I2C
+    Wire.end();
+    delay(100);
+    Wire.begin();
+    delay(100);
+    
+    if (uvSensor.begin()) {
+        uvData.sensorOK = true;
+        uvData.errorCount = 0;
+        Serial.println(F("UV sensor recovered"));
+    } else {
+        Serial.println(F("UV sensor recovery failed"));
+    }
 }
 
 // Установка уставки UVB
 void setUVBThreshold(float threshold) {
     if (threshold < 0) threshold = 0;
-    if (threshold > 100) threshold = 100; // Разумный предел
+    if (threshold > 100) threshold = 100;
     
     if (abs(uvData.uvbThreshold - threshold) > 0.01) {
         uvData.uvbThreshold = threshold;
         Serial.print(F("UVB threshold set to: "));
         Serial.println(threshold);
-        
-        // Сразу обновляем компаратор при изменении уставки
         updateUVComparator();
     }
 }
 
 // Обновление компаратора UVB
 void updateUVComparator() {
-    if (!uvData.sensorOK) {
-        // Если датчик не работает - выключаем пин
+    if (!uvData.sensorOK || !uvData.valid) {
         if (uvData.comparatorState) {
             digitalWrite(UV_COMPARATOR_PIN, LOW);
             uvData.comparatorState = false;
@@ -80,49 +110,72 @@ void updateUVComparator() {
         return;
     }
     
-    bool newState = (uvData.uvb < uvData.uvbThreshold); // 1 если ниже уставки
+    bool newState = (uvData.uvb < uvData.uvbThreshold);
     
-    // Добавляем небольшой гистерезис (0.1) чтобы избежать дребезга
     if (newState != uvData.comparatorState) {
-        // Проверяем с гистерезисом
         if (newState && uvData.uvb < uvData.uvbThreshold - 0.1) {
-            // Включаем: значение значительно ниже уставки
             digitalWrite(UV_COMPARATOR_PIN, HIGH);
             uvData.comparatorState = true;
             Serial.print(F("UV comparator: ON (UVB="));
-            Serial.print(uvData.uvb);
+            Serial.print(uvData.uvb, 2);
             Serial.print(F(" < "));
-            Serial.print(uvData.uvbThreshold);
+            Serial.print(uvData.uvbThreshold, 2);
             Serial.println(F(")"));
         } 
         else if (!newState && uvData.uvb > uvData.uvbThreshold + 0.1) {
-            // Выключаем: значение значительно выше уставки
             digitalWrite(UV_COMPARATOR_PIN, LOW);
             uvData.comparatorState = false;
             Serial.print(F("UV comparator: OFF (UVB="));
-            Serial.print(uvData.uvb);
+            Serial.print(uvData.uvb, 2);
             Serial.print(F(" >= "));
-            Serial.print(uvData.uvbThreshold);
+            Serial.print(uvData.uvbThreshold, 2);
             Serial.println(F(")"));
         }
-        // В зоне гистерезиса ничего не делаем
     }
 }
 
 // Обновление данных с датчика
 void updateVEML6075() {
-    if (!uvData.sensorOK) return;
+    unsigned long now = millis();
+    
+    if (!uvData.sensorOK) {
+        // Пробуем восстановить каждые 10 секунд
+        if (now - lastRecoveryTime > UV_RECOVERY_INTERVAL) {
+            lastRecoveryTime = now;
+            resetUVSensor();
+        }
+        return;
+    }
     
     // Читаем данные
-    uvData.uva = uvSensor.readUVA();
-    uvData.uvb = uvSensor.readUVB();
-    uvData.uvIndex = uvSensor.readUVI();
-    uvData.lastReadTime = millis();
+    float newUVA = uvSensor.readUVA();
+    float newUVB = uvSensor.readUVB();
+    float newUVI = uvSensor.readUVI();
     
-    // Проверка на валидность
-    if (uvData.uva < 0) uvData.uva = 0;
-    if (uvData.uvb < 0) uvData.uvb = 0;
-    if (uvData.uvIndex < 0) uvData.uvIndex = 0;
+    // Обновляем с защитой
+    uvData.update(newUVA, newUVB, newUVI, now);
+    
+    // Отладка при ошибках
+    if (!uvData.valid && uvData.errorCount > 3) {
+        Serial.print(F("UV sensor error: UVA="));
+        Serial.print(newUVA);
+        Serial.print(F(" UVB="));
+        Serial.print(newUVB);
+        Serial.print(F(" UVI="));
+        Serial.println(newUVI);
+    } else if (uvData.valid && uvData.errorCount == 0) {
+        // Периодический вывод для отладки (раз в 30 секунд)
+        static unsigned long lastPrint = 0;
+        if (now - lastPrint > 30000) {
+            lastPrint = now;
+            Serial.print(F("UV: UVA="));
+            Serial.print(uvData.uva, 2);
+            Serial.print(F(" UVB="));
+            Serial.print(uvData.uvb, 2);
+            Serial.print(F(" UVI="));
+            Serial.println(uvData.uvIndex, 2);
+        }
+    }
     
     // Обновляем компаратор
     updateUVComparator();
@@ -130,5 +183,5 @@ void updateVEML6075() {
 
 // Проверка связи с датчиком
 bool isVEML6075Connected() {
-    return uvData.sensorOK;
+    return uvData.sensorOK && uvData.valid;
 }

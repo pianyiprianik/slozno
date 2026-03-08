@@ -18,7 +18,7 @@
 //#define ONE_WIRE_BUS_REACTOR_2 8
 
 #define ONE_WIRE_BUS_MAIN 6      // Датчики 1 и 2 на одном пине
-#define ONE_WIRE_BUS_EXTRA 7
+#define ONE_WIRE_BUS_EXTRA 8
 
 // ТЭНы
 #define HEATER_PIN_1 4
@@ -145,4 +145,4 @@ const uint16_t EEPROM_MAGIC_V7 = 0xC1D2;
 const uint16_t EEPROM_MAGIC_V17 = 0xC3D4;
 #define EEPROM_MAGIC_NUMBER 0x5A    //0x5A = 90 в десятичной
 
-#endif // CONFIG_
+#endif // CONFIG

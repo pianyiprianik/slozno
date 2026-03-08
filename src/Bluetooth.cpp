@@ -445,10 +445,10 @@ String onRequested(char variableType, uint8_t variableIndex) {
             
             
             // ===== UV ДАТЧИК =====
-            case 40: return String(uvData.uva, 2);  
-            case 41: return String(uvData.uvb, 2);
-            case 42: return String(uvData.uvIndex, 2);
-            case 43: return String(uvData.sensorOK ? 1 : 0);
+            case 40: return String(uvData.getUVA(), 2);  
+            case 41: return String(uvData.getUVB(), 2);
+            case 42: return String(uvData.getUVI(), 2);
+            case 43: return String(uvData.valid ? 1 : 0);
             case 44: return String(uvData.uvbThreshold, 2);  
             case 45: return String(uvData.comparatorState ? 1 : 0);
 
