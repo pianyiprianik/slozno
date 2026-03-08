@@ -89,10 +89,6 @@ void setup() {
     wdt_enable(WDTO_4S);
     Serial.println(F("Watchdog enabled (4s)"));
     
-    // Первый запрос температур
-    sensorReactor1.requestTemperatures();
-    sensorReactor2.requestTemperatures();
-    
     Serial.println(F("System ready!"));
 
     wdt_enable(WDTO_4S);
@@ -146,16 +142,16 @@ void loop() {
         }
     }
     
-    // Обновление температуры
+    // Обновление температуры (каждые 2 секунды)
     if (millis() - lastTempUpdate >= TEMP_UPDATE_INTERVAL) {
-        updateTemperatures(heater1, heater2);
+        updateAllTemperatures(heater1, heater2);
         lastTempUpdate = millis();
     }
 
     // Проверка дополнительных датчиков (каждые 10 секунд)
     static unsigned long lastExtraCheck = 0;
     if (millis() - lastExtraCheck >= 10000) {
-        checkAndRecoverExtraSensors();
+        checkAndRecoverExtraBus();
         lastExtraCheck = millis();
     }
     
@@ -210,7 +206,17 @@ void loop() {
         Serial.print(F("V1 R:"));
         Serial.print(heater1.currentTemp, 1);
         Serial.print(F("°C T:"));
+
+        float t1 = getMainTemp1();
+        if (t1 > 0.1) {
+            Serial.print(t1, 1);
+        } else {
+            Serial.print(F("ERR"));
+        }
+        Serial.print(F("°C ["));
         Serial.print(heater1.targetTemp, 1);
+        Serial.print(F("] "));
+
         Serial.print(F("°C H:"));
         Serial.print(heater1.state ? F("ON ") : F("OFF"));
         Serial.print(F(" A:"));
@@ -221,7 +227,17 @@ void loop() {
         Serial.print(F(" | V2 R:"));
         Serial.print(heater2.currentTemp, 1);
         Serial.print(F("°C T:"));
+
+        float t2 = getMainTemp2();
+        if (t2 > 0.1) {
+            Serial.print(t2, 1);
+        } else {
+            Serial.print(F("ERR"));
+        }
+        Serial.print(F("°C ["));
         Serial.print(heater2.targetTemp, 1);
+        Serial.print(F("] "));
+
         Serial.print(F("°C H:"));
         Serial.print(heater2.state ? F("ON ") : F("OFF"));
         Serial.print(F(" A:"));
@@ -272,23 +288,22 @@ void loop() {
             Serial.print(F(" | TIMER:OFF"));
         }
 
-        Serial.print(F(" | EXT1:"));
-        if (extraData1.valid) {
-            Serial.print(extraData1.filteredValue, 1);
-            Serial.print(F("°C"));
-            if (extraData1.errorCount > 0) Serial.print(F("*"));  // * если были ошибки
+        // Дополнительные датчики (V60, V61)
+        Serial.print(F(" | V60:"));
+        float e1 = getExtraTemp1();
+        if (e1 > 0.1) {
+            Serial.print(e1, 1);
         } else {
             Serial.print(F("OFF"));
         }
-    
-        Serial.print(F(" EXT2:"));
-        if (extraData2.valid) {
-            Serial.print(extraData2.filteredValue, 1);
-            Serial.print(F("°C"));
-            if (extraData2.errorCount > 0) Serial.print(F("*"));
+        Serial.print(F("°C V61:"));
+        float e2 = getExtraTemp2();
+        if (e2 > 0.1) {
+            Serial.print(e2, 1);
         } else {
             Serial.print(F("OFF"));
         }
+        Serial.print(F("°C"));
 
     }
     

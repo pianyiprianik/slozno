@@ -15,10 +15,13 @@ struct TempSensorData {
     int errorCount;           // Счётчик ошибок подряд
     float lastGoodValue;      // Последнее хорошее значение
     bool initialized;
+    uint8_t address[8];  // Храним адрес датчика для диагностики
     
     TempSensorData() : rawValue(0.0), filteredValue(0.0), valid(false), 
                        lastGoodRead(0), errorCount(0), lastGoodValue(0.0),
-                       initialized(false) {}
+                       initialized(false) {
+                                memset(address, 0, sizeof(address));
+                       }
     
     // Обновление с защитой
     void update(float newValue, unsigned long currentTime) {
@@ -75,29 +78,36 @@ struct TempSensorData {
 };
 
 // Основные датчики (для управления)
-extern OneWire oneWireReactor1;
-extern OneWire oneWireReactor2;
-extern DallasTemperature sensorReactor1;
-extern DallasTemperature sensorReactor2;
+extern OneWire oneWireMain;      // Пин 6 - датчики 1 и 2
+extern DallasTemperature sensorMain;
 
 // ОБЩАЯ 1-Wire шина для дополнительных датчиков
 extern OneWire oneWireExtra;
 extern DallasTemperature sensorExtra;
 
-// Данные дополнительных датчиков с защитой
+// Данные датчиков с защитой
+extern TempSensorData mainData1;   // V1 - первый датчик на main шине (индекс 0)
+extern TempSensorData mainData2;   // V11 - второй датчик на main шине (индекс 1)
 extern TempSensorData extraData1;  // V60 - датчик 3
 extern TempSensorData extraData2;  // V61 - датчик 4
 
 // Функции для работы с температурой
 void initTemperatureSensors();
 void requestTemperatures();
-void updateTemperatures(Heater &heater1, Heater &heater2);
+void updateAllTemperatures(Heater &heater1, Heater &heater2);
+void updateMainTemperatures();
 void updateExtraTemperatures();
 bool isValidTemperature(float temp);
-void checkAndRecoverExtraSensors();
 
 // Функции для безопасного получения значений
-float getExtraTemp1();  // Возвращает 0 вместо мусора
-float getExtraTemp2();
+float getMainTemp1();   // V1
+float getMainTemp2();   // V11
+float getExtraTemp1();  // V60
+float getExtraTemp2();  // V61
+
+// Диагностика и восстановление
+void scanAllBuses();
+void checkAndRecoverMainBus();
+void checkAndRecoverExtraBus();
 
 #endif // TEMPERATURE_H

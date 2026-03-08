@@ -14,9 +14,10 @@
 #define BT_TX_PIN 11        //  TX подключаем на 10 пин
 
 // Датчики температуры
-#define ONE_WIRE_BUS_REACTOR_1 6
-#define ONE_WIRE_BUS_REACTOR_2 8
+//#define ONE_WIRE_BUS_REACTOR_1 6
+//#define ONE_WIRE_BUS_REACTOR_2 8
 
+#define ONE_WIRE_BUS_MAIN 6      // Датчики 1 и 2 на одном пине
 #define ONE_WIRE_BUS_EXTRA 7
 
 // ТЭНы
