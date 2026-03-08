@@ -17,8 +17,7 @@
 #define ONE_WIRE_BUS_REACTOR_1 6
 #define ONE_WIRE_BUS_REACTOR_2 8
 
-#define ONE_WIRE_BUS_EXTRA_1 7
-#define ONE_WIRE_BUS_EXTRA_2 9
+#define ONE_WIRE_BUS_EXTRA 7
 
 // ТЭНы
 #define HEATER_PIN_1 4

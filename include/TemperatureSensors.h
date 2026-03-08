@@ -14,9 +14,11 @@ struct TempSensorData {
     unsigned long lastGoodRead; // Время последнего хорошего чтения
     int errorCount;           // Счётчик ошибок подряд
     float lastGoodValue;      // Последнее хорошее значение
+    bool initialized;
     
     TempSensorData() : rawValue(0.0), filteredValue(0.0), valid(false), 
-                       lastGoodRead(0), errorCount(0), lastGoodValue(0.0) {}
+                       lastGoodRead(0), errorCount(0), lastGoodValue(0.0),
+                       initialized(false) {}
     
     // Обновление с защитой
     void update(float newValue, unsigned long currentTime) {
@@ -32,6 +34,7 @@ struct TempSensorData {
             lastGoodValue = newValue;
             lastGoodRead = currentTime;
             errorCount = 0;
+            initialized = true;
         } else {
             // Плохое чтение
             errorCount++;
@@ -63,6 +66,12 @@ struct TempSensorData {
         }
         return 0.0;  // Возвращаем 0 вместо -999.9
     }
+
+    void reset() {
+        initialized = false;
+        valid = false;
+        errorCount = 0;
+    }
 };
 
 // Основные датчики (для управления)
@@ -71,11 +80,9 @@ extern OneWire oneWireReactor2;
 extern DallasTemperature sensorReactor1;
 extern DallasTemperature sensorReactor2;
 
-// ДОПОЛНИТЕЛЬНЫЕ датчики (только мониторинг)
-extern OneWire oneWireExtra1;
-extern OneWire oneWireExtra2;
-extern DallasTemperature sensorExtra1;
-extern DallasTemperature sensorExtra2;
+// ОБЩАЯ 1-Wire шина для дополнительных датчиков
+extern OneWire oneWireExtra;
+extern DallasTemperature sensorExtra;
 
 // Данные дополнительных датчиков с защитой
 extern TempSensorData extraData1;  // V60 - датчик 3
@@ -87,6 +94,7 @@ void requestTemperatures();
 void updateTemperatures(Heater &heater1, Heater &heater2);
 void updateExtraTemperatures();
 bool isValidTemperature(float temp);
+void checkAndRecoverExtraSensors();
 
 // Функции для безопасного получения значений
 float getExtraTemp1();  // Возвращает 0 вместо мусора

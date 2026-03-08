@@ -151,6 +151,13 @@ void loop() {
         updateTemperatures(heater1, heater2);
         lastTempUpdate = millis();
     }
+
+    // Проверка дополнительных датчиков (каждые 10 секунд)
+    static unsigned long lastExtraCheck = 0;
+    if (millis() - lastExtraCheck >= 10000) {
+        checkAndRecoverExtraSensors();
+        lastExtraCheck = millis();
+    }
     
     // Управление нагревателями
     if (millis() - lastControlUpdate >= CONTROL_UPDATE_INTERVAL) {
